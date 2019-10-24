@@ -1,63 +1,65 @@
 import imaplib  # https://docs.python.org/3/library/imaplib.html
 import email  # https://docs.python.org/3/library/email.html
-# https://www.youtube.com/watch?v=bbPwv0TP2UQ
-# https://github.com/isbg/isbg
-# https://tools.ietf.org/html/rfc3501
 
 
 def __do_auth():
-    # do authentication
     # https://www.google.com/settings/security/lesssecureapps
-    # put data into separate file
     username = ''
     password = ''
 
-    conn = imaplib.IMAP4_SSL('')
+    conn = imaplib.IMAP4_SSL('imap.gmail.com')  # imap.gmail.com / imap.gmx.net
     conn.login(username, password)
 
     return conn
 
 
-def __retrieve_mails(conn):
-    # retrieve unseen mails
-    conn.list()
+def __retrieve_new_uids(conn):
     conn.select('INBOX')
-    # Recent or unseen or do i have to store the ids of the mails?
-    conn.recent()  # only first client will receive the mail
-    uids = conn.search(None, '(UNSEEN)')  # what is with SEEN mails on other clients
-
-    mails = []
-    for uid in uids:
-        res = conn.uid("FETCH", uid, "(BODY.PEEK[])")
-        body = res[1][0][1]
-        if isinstance(body, bytes):
-            mail = email.message_from_bytes(body)
-            mails.append(mail)
-        else:
-            mail = email.message_from_string(body)
-            mails.append(mail)
-            # unwrap if it is multipart mail
-
-    return mails
+    # only first client will receive the mail, should be replaced with a list of already scanned mails
+    result, uids = conn.uid('SEARCH', None, 'All')  # conn.recent()
+    if result != 'OK':
+        uids = []
+    return uids[0].split()
 
 
-def __process_mail(conn, msg_uid):
-    result = conn.uid('COPY', msg_uid, '<destination folder>')
+def __retrieve_mail(conn, uid):
+    result, data = conn.uid('FETCH', uid, '(BODY.PEEK[])')
+    body = data[0][1]
+    if isinstance(body, bytes):
+        mail = email.message_from_bytes(body)
+    else:
+        mail = email.message_from_string(body)
+    # unwrap if it is multipart mail
+
+    return mail
+
+
+def __process_mail_as_spam(conn, msg_uid):
+    result = conn.uid('COPY', msg_uid, '[Gmail]/Spam')
 
     if result[0] == 'OK':
         conn.uid('STORE', msg_uid, '+FLAGS', '(\Deleted)')
         conn.expunge()
 
 
+def __process_mail(mail):
+    payload = mail.get_payload()
+    subject = mail['Subject']
+    sender = mail['From']
+    to = mail['To']
+
+
 def __shutdown(conn):
     conn.logout()
 
 
-conn = __do_auth()
-__retrieve_mails(conn)
-# foreach mail # or retrieve only uids of unseen and then iterate over uids and retrieve mail step by step
-    # calculate spam score
-    # do something if score is higher than certain value
-__shutdown(conn)
-
-# Exception handling. finally shutdown
+if __name__ == "__main__":
+    conn = __do_auth()
+    uids = __retrieve_new_uids(conn)
+    for uid in uids:
+        mail = __retrieve_mail(conn, uid)
+        __process_mail(mail)
+        score = 0  # calculate spam score
+        if score > 0.5:
+            __process_mail_as_spam(conn, uid)
+    __shutdown(conn)
