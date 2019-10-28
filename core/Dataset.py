@@ -1,11 +1,11 @@
+from abc import abstractmethod
+
 import sklearn.datasets as datasets
 import os
 
 
 class Dataset:
     """Abstract Dataset class"""
-
-    relative_container_path = ""
     categories = ["ham", "spam"]
     preload = True
 
@@ -18,3 +18,8 @@ class Dataset:
         return datasets.load_files(container_path=self.container_path(),
                                    categories=self.categories,
                                    load_content=self.preload)
+
+    @property
+    @abstractmethod
+    def relative_container_path(self):
+        pass
