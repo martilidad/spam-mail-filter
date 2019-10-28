@@ -1,4 +1,4 @@
-from util.Dataset import Dataset
+from core.Dataset import Dataset
 
 
 class EnronDataset(Dataset):

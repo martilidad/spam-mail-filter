@@ -1,10 +1,9 @@
 from unittest import TestCase
 
-from util.EnronDataset import EnronDataset
+from core.EnronDataset import EnronDataset
 
 
 class TestEnronDataset(TestCase):
-
     def test_load(self):
         data = EnronDataset()
         loaded_data = data.load_files()
