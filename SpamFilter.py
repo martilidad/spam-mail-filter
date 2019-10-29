@@ -1,22 +1,31 @@
 from imap.ImapClient import ImapClient
-from bayes.BayesClassifier import  BayesClassifier
+from util import MailUtils
+
+from bayes.BayesClassifier import BayesClassifier
+from core.EnronDataset import EnronDataset
+from sklearn.model_selection import train_test_split
+
 import threading
 
 
 class SpamFilter:
 
     def __init__(self):
-        # read config values
+        # TODO read values from config file
         username = ''
         password = ''
-        host = 'imap.gmail.com'
+        host = ''
 
         # init imapClient with host
         self.imap = ImapClient(host)
         self.imap.login(username, password)
 
         # do trainig
-        self.classifier = BayesClassifier(None, None)
+        data = EnronDataset().load_files()
+        train_texts, _, train_labels, _ = train_test_split(
+            data.data, data.target, train_size=0.6)
+        train_mails = MailUtils.strings_to_mails(train_texts)
+        self.classifier = BayesClassifier(train_mails, train_labels)
 
         self.mailChecker = self.MailCheckerThread(15 * 60, self.imap)
         self.mailChecker.start()
@@ -39,13 +48,15 @@ class SpamFilter:
                 self.__mail_check()
 
         def __mail_check(self):
+            print("checking mails")
             uids = self.imap.get_all_uids()
             for uid in uids:
-                # uid überprüfen
+                # TODO check if uid is new
                 mail = self.imap.get_mail_for_uid(uid)
-                score = self.classifier.classify(mail)
-                if score > 0.5:
-                    self.imap.move_mail(uid, "spam")
+                score = self.classifier.classify([MailUtils.strings_to_mails(mail.as_string())])
+                if score[0] > 0.5:
+                    print("spam detected")
+                    self.imap.move_mail(uid, "[Gmail]/Spam")
 
         def stop(self):
             self.stopped.set()
