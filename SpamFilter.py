@@ -26,8 +26,9 @@ class SpamFilter:
             data.data, data.target, train_size=0.6)
         train_mails = MailUtils.strings_to_mails(train_texts)
         self.classifier = BayesClassifier(train_mails, train_labels)
+        self.classifier.train()
 
-        self.mailChecker = self.MailCheckerThread(15 * 60, self.imap)
+        self.mailChecker = self.MailCheckerThread(15 * 60, self.imap, self.classifier)
         self.mailChecker.start()
 
     def stop(self):
@@ -44,6 +45,7 @@ class SpamFilter:
             self.classifier = classifier
 
         def run(self):
+            self.__mail_check()
             while not self.stopped.wait(self.interval):
                 self.__mail_check()
 
@@ -53,7 +55,7 @@ class SpamFilter:
             for uid in uids:
                 # TODO check if uid is new
                 mail = self.imap.get_mail_for_uid(uid)
-                score = self.classifier.classify([MailUtils.strings_to_mails(mail.as_string())])
+                score = self.classifier.classify(MailUtils.message_to_mails(mail))
                 if score[0] > 0.5:
                     print("spam detected")
                     self.imap.move_mail(uid, "[Gmail]/Spam")
