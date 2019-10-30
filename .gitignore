@@ -1,6 +1,7 @@
 # Test-Data
 data/*
 !data/README.md
+!data/ENRON.zip
 
 #IDE
 .idea/

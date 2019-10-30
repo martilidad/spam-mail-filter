@@ -1,6 +1,6 @@
 # Training Data
 
-Please Download The Test-Data either from the Project Cloudhost or from respective Provider.
+Please unzip the corresponding file in order to use each dataset.
 
 Enron Dataset: "Spam Filtering with Naive Bayes – Which Naive Bayes?"
 Vangelis Metsis et. al.
