@@ -1,6 +1,8 @@
 from imap.ImapClient import ImapClient
 from util import MailUtils
 
+from email.message import Message
+
 from bayes.BayesClassifier import BayesClassifier
 from core.EnronDataset import EnronDataset
 from sklearn.model_selection import train_test_split
@@ -49,16 +51,31 @@ class SpamFilter:
             while not self.stopped.wait(self.interval):
                 self.__mail_check()
 
+        def get_payload_as_string(self, mail: Message) -> str:
+            if mail.is_multipart():
+                parts = mail.get_payload()
+                res = ""
+                for part in parts:
+                    res += self.get_payload_as_string(part)
+                    res + "\n\n"
+                return res
+            else:
+                return mail.get_payload()
+
         def __mail_check(self):
             print("checking mails")
             uids = self.imap.get_all_uids()
             for uid in uids:
                 # TODO check if uid is new
-                mail = self.imap.get_mail_for_uid(uid)
-                score = self.classifier.classify(MailUtils.message_to_mails(mail))
+                payload = self.imap.get_raw_mail_for_uid(uid)
+                # mail = self.imap.get_mail_for_uid(uid)
+                # payload = self.get_payload_as_string(mail)
+                score = self.classifier.classify(MailUtils.strings_to_mails([payload]))
                 if score[0] > 0.5:
                     print("spam detected")
-                    self.imap.move_mail(uid, "[Gmail]/Spam")
+                    # self.imap.move_mail(uid, "[Gmail]/Spam")
+                else:
+                    print("ham detected")
 
         def stop(self):
             self.stopped.set()
