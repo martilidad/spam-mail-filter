@@ -3,7 +3,6 @@ import email  # https://docs.python.org/3/library/email.html
 
 
 class ImapClient:
-
     def __init__(self, host):
         self.conn = imaplib.IMAP4_SSL(host)
 

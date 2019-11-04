@@ -11,7 +11,6 @@ import threading
 
 
 class SpamFilter:
-
     def __init__(self):
         # TODO read values from config file
         username = ''
@@ -24,13 +23,15 @@ class SpamFilter:
 
         # do trainig
         data = EnronDataset().load_files()
-        train_texts, _, train_labels, _ = train_test_split(
-            data.data, data.target, train_size=0.6)
+        train_texts, _, train_labels, _ = train_test_split(data.data,
+                                                           data.target,
+                                                           train_size=0.6)
         train_mails = MailUtils.strings_to_mails(train_texts)
         self.classifier = BayesClassifier(train_mails, train_labels)
         self.classifier.train()
 
-        self.mailChecker = self.MailCheckerThread(15 * 60, self.imap, self.classifier)
+        self.mailChecker = self.MailCheckerThread(15 * 60, self.imap,
+                                                  self.classifier)
         self.mailChecker.start()
 
     def stop(self):
@@ -38,7 +39,6 @@ class SpamFilter:
         self.imap.logout()
 
     class MailCheckerThread(threading.Thread):
-
         def __init__(self, interval, imap, classifier):
             threading.Thread.__init__(self)
             self.stopped = threading.Event()
@@ -70,7 +70,8 @@ class SpamFilter:
                 payload = self.imap.get_raw_mail_for_uid(uid)
                 # mail = self.imap.get_mail_for_uid(uid)
                 # payload = self.get_payload_as_string(mail)
-                score = self.classifier.classify(MailUtils.strings_to_mails([payload]))
+                score = self.classifier.classify(
+                    MailUtils.strings_to_mails([payload]))
                 if score[0] > 0.5:
                     print("spam detected")
                     # self.imap.move_mail(uid, "[Gmail]/Spam")
