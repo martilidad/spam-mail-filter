@@ -1,7 +1,7 @@
 from scipy import sparse
 from scipy.sparse import csr_matrix
 from sklearn.exceptions import NotFittedError
-from sklearn.feature_extraction.text import HashingVectorizer, CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 
 from core.Classifier import Classifier
@@ -13,14 +13,15 @@ from util import MailUtils
 class BayesClassifier(Classifier):
     def __init__(self, train_mails: [Mail] = None, train_labels: [int] = None):
         super().__init__(train_mails, train_labels)
+        self.vocabulary: dict = {}
         if train_mails is not None and train_labels is not None:
-            self.train_mails = train_mails
             self.train_labels = train_labels
             self.update_vocabulary(train_mails)
+            self.vectorized_mails: csr_matrix = self.vectorizer.transform(
+                MailUtils.mails_to_strings(train_mails))
         else:
-            self.train_mails: [Mail] = []
+            self.vectorized_mails = None
             self.train_labels: [int] = []
-            self.vocabulary: dict = {}
         self.classifier = MultinomialNB()
 
     @staticmethod
@@ -50,13 +51,22 @@ class BayesClassifier(Classifier):
 
     def train(self, mails: [Mail] = None, labels: [int] = None):
         if mails is not None and labels is not None:
+            self.train_labels = [*self.train_labels, *labels]
             self.update_vocabulary(mails)
             # most resilient list concatenation
-            self.train_mails = [*self.train_mails, *mails]
-            self.train_labels = [*self.train_labels, *labels]
-        vectorized_mails = self.vectorizer.transform(
-            MailUtils.mails_to_strings(self.train_mails))
-        self.classifier.fit(vectorized_mails, self.train_labels)
+            vector: csr_matrix = self.vectorizer.transform(
+                MailUtils.mails_to_strings(mails))
+            if self.vectorized_mails is not None:
+                vector.resize(vector.shape[0], len(self.vocabulary))
+                self.vectorized_mails.resize(self.vectorized_mails.shape[0],
+                                             len(self.vocabulary))
+                self.vectorized_mails = sparse.vstack(
+                    (self.vectorized_mails, vector))
+            else:
+                self.vectorized_mails = vector
+        elif self.vectorized_mails is None:
+            raise RuntimeError("the Classifier needs data")
+        self.classifier.fit(self.vectorized_mails, self.train_labels)
 
     def classify(self, mails: [Mail]) -> [float]:
         vectorized_mails = self.vectorizer.transform(
