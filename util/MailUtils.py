@@ -7,4 +7,3 @@ def mails_to_strings(mails: [Mail]):
 
 def strings_to_mails(strings: [str]) -> [Mail]:
     return [Mail(string) for string in strings]
-

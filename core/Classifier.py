@@ -4,11 +4,11 @@ from abc import abstractmethod
 
 class Classifier:
     @abstractmethod
-    def __init__(self, train_mails: [Mail], train_labels: [int]):
+    def __init__(self, train_mails: [Mail] = None, train_labels: [int] = None):
         pass
 
     @abstractmethod
-    def train(self):
+    def train(self, mails: [Mail] = None, labels: [int] = None):
         pass
 
     @abstractmethod
