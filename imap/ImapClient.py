@@ -1,9 +1,11 @@
 import imaplib  # https://docs.python.org/3/library/imaplib.html
 import email  # https://docs.python.org/3/library/email.html
+from core.MailClient import MailClient
 
 
-class ImapClient:
-    def __init__(self, host):
+class ImapClient(MailClient):
+    def __init__(self, host: str):
+        super().__init__(host)
         self.conn = imaplib.IMAP4_SSL(host)
 
     def login(self, user: str, password: str):

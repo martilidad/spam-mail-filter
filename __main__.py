@@ -1,4 +1,4 @@
-from SpamFilter import SpamFilter
+from core.SpamFilter import SpamFilter
 import signal
 import time
 
@@ -15,6 +15,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
     sf = SpamFilter()
+    sf.start()
 
     while True:
         try:
