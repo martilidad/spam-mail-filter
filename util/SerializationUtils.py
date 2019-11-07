@@ -1,7 +1,7 @@
 import json
 import os
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "/../data/")
+DATA_DIR = os.path.dirname(__file__) + "/../data/"
 
 
 def __get_absolute_file_path(filename):
