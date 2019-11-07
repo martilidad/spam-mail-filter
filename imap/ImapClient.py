@@ -4,9 +4,9 @@ from core.MailClient import MailClient
 
 
 class ImapClient(MailClient):
-    def __init__(self, host: str):
-        super().__init__(host)
-        self.conn = imaplib.IMAP4_SSL(host)
+    def __init__(self, host: str, port: int):
+        super().__init__(host, port)
+        self.conn = imaplib.IMAP4_SSL(host, port)
 
     def login(self, user: str, password: str):
         self.conn.login(user, password)
@@ -14,8 +14,10 @@ class ImapClient(MailClient):
     def logout(self):
         self.conn.logout()
 
+    def select_mailbox(self, mailbox: str):
+        self.conn.select(mailbox)
+
     def get_all_uids(self) -> [bytes]:
-        self.conn.select('INBOX')
         result, uids = self.conn.uid('SEARCH', None, 'All')
         return uids[0].split()
 

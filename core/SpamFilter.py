@@ -1,21 +1,19 @@
-from imap.ImapClient import ImapClient
-from util import MailUtils
-from core.MailChecker import MailChecker
+from sklearn.model_selection import train_test_split
 
 from bayes.BayesClassifier import BayesClassifier
+from core.Config import Config
 from core.EnronDataset import EnronDataset
-from sklearn.model_selection import train_test_split
+from core.MailChecker import MailChecker
+from imap.ImapClient import ImapClient
+from util import MailUtils
 
 
 class SpamFilter:
     def __init__(self):
-        # TODO read values from config file
-        self.username = ''
-        self.password = ''
-        host = ''
+        self.config = Config()
 
         # init imapClient with host
-        self.imap = ImapClient(host)
+        self.imap = ImapClient(self.config.host, self.config.port)
 
         # do trainig
         data = EnronDataset().load_files()
@@ -26,10 +24,10 @@ class SpamFilter:
         self.classifier = BayesClassifier(train_mails, train_labels)
         self.classifier.train()
 
-        self.mailChecker = MailChecker(15 * 60, self.imap, self.classifier)
+        self.mailChecker = MailChecker(self.imap, self.classifier, self.config)
 
     def start(self):
-        self.imap.login(self.username, self.password)
+        self.imap.login(self.config.username, self.config.password)
         self.mailChecker.start()
 
     def stop(self):

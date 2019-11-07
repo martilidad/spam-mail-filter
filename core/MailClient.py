@@ -4,7 +4,7 @@ from email.message import Message
 
 class MailClient:
     @abstractmethod
-    def __init__(self, host: str):
+    def __init__(self, host: str, port: int):
         pass
 
     @abstractmethod
@@ -13,6 +13,10 @@ class MailClient:
 
     @abstractmethod
     def logout(self):
+        pass
+
+    @abstractmethod
+    def select_mailbox(self, mailbox: str):
         pass
 
     @abstractmethod
