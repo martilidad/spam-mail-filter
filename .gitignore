@@ -2,6 +2,7 @@
 data/*
 !data/README.md
 !data/ENRON.zip
+!data/MUSTERMANN.zip
 
 #IDE
 .idea/
