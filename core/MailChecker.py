@@ -17,7 +17,8 @@ class MailChecker(threading.Thread):
 
     def __retrieve_new_uids(self):
         uids = self.imap.get_all_uids()
-        old_checked_uids = SerializationUtils.deserialize(self.config.trackfile)
+        old_checked_uids = SerializationUtils.deserialize(
+            self.config.trackfile)
         if old_checked_uids is None:
             old_checked_uids = []
         new_uids = [u for u in uids if int(u) not in old_checked_uids]

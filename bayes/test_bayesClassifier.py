@@ -9,12 +9,10 @@ from util import MailUtils, SerializationUtils
 
 
 class TestBayesClassifier(TestCase):
-
     def setUp(self) -> None:
         data = EnronDataset().load_files()
-        train_texts, test_texts, train_labels, test_labels = train_test_split(data.data,
-                                                                              data.target,
-                                                                              train_size=0.6)
+        train_texts, test_texts, train_labels, test_labels = train_test_split(
+            data.data, data.target, train_size=0.6)
         train_mails = MailUtils.strings_to_mails(train_texts)
         self.test_mails = MailUtils.strings_to_mails(test_texts)
         self.fixture = BayesClassifier(train_mails, train_labels)
@@ -27,7 +25,8 @@ class TestBayesClassifier(TestCase):
         accuracy = accuracy_score(self.test_labels, predictions)
         self.assertGreater(accuracy, 0.9)
         print('Accuracy score: ', accuracy)
-        print('Precision score: ', precision_score(self.test_labels, predictions))
+        print('Precision score: ',
+              precision_score(self.test_labels, predictions))
         print('Recall score: ', recall_score(self.test_labels, predictions))
 
     def test_classify_batch_train(self):
@@ -58,4 +57,3 @@ class TestBayesClassifier(TestCase):
 
         self.assertEqual(accuracy, result_accuracy)
         # Testing vocab, vector, etc. equality would take forever here.
-

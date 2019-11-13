@@ -5,7 +5,6 @@ T = TypeVar('T')
 
 
 class Serializable(Generic[T]):
-
     @property
     @abstractmethod
     def save_folder(self):

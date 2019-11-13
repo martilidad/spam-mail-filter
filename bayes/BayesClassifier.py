@@ -86,17 +86,22 @@ class BayesClassifier(Classifier, Serializable['BayesClassifier']):
                 "Call train() before using this method.")
 
     def serialize(self):
-        base_folder = SerializationUtils.get_absolute_file_path(self.save_folder)
+        base_folder = SerializationUtils.get_absolute_file_path(
+            self.save_folder)
         np.save(base_folder + "/labels", self.train_labels)
         sparse.save_npz(base_folder + "/mails", self.vectorized_mails)
-        SerializationUtils.serialize(self.vocabulary, self.save_folder + "vocab")
+        SerializationUtils.serialize(self.vocabulary,
+                                     self.save_folder + "vocab")
 
     @staticmethod
     def deserialize() -> 'BayesClassifier':
         instance = BayesClassifier()
-        base_folder = SerializationUtils.get_absolute_file_path(instance.save_folder)
+        base_folder = SerializationUtils.get_absolute_file_path(
+            instance.save_folder)
         instance.train_labels = np.load(base_folder + "/labels" + ".npy")
-        instance.vectorized_mails = sparse.load_npz(base_folder + "/mails" + ".npz")
-        instance.vocabulary = SerializationUtils.deserialize(instance.save_folder + "vocab")
+        instance.vectorized_mails = sparse.load_npz(base_folder + "/mails" +
+                                                    ".npz")
+        instance.vocabulary = SerializationUtils.deserialize(
+            instance.save_folder + "vocab")
         instance.vectorizer = instance.create_vectorizer(instance.vocabulary)
         return instance
