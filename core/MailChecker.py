@@ -35,9 +35,9 @@ class MailChecker(threading.Thread):
         self.imap.select_mailbox(self.config.inbox)
         new_uids, old_checked_uids = self.__retrieve_new_uids()
         for uid in new_uids:
-            payload = self.imap.get_raw_mail_for_uid(uid)
+            message = self.imap.get_mail_for_uid(uid)
             score = self.classifier.classify(
-                MailUtils.strings_to_mails([payload]))
+                MailUtils.messages_to_mails([message]))
             if score[0] > self.config.score_threshold:
                 print("spam detected")
                 if not self.config.dryrun and self.config.spam_folder is not None:
@@ -45,6 +45,7 @@ class MailChecker(threading.Thread):
             else:
                 print("ham detected")
         self.__store_new_checke_uids(old_checked_uids, new_uids)
+        print("mailcheck complete")
 
     def stop(self):
         self.stopped.set()
