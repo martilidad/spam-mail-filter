@@ -29,4 +29,5 @@ class Config:
 
         process_config = parser['process']
         self.dryrun = process_config.getboolean('dryrun', False)
-        self.usermail_training = process_config.getboolean('usermail_training', False)
+        self.usermail_training = process_config.getboolean(
+            'usermail_training', False)
