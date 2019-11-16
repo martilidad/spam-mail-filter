@@ -12,13 +12,16 @@ def get_absolute_file_path(filename):
     return DATA_DIR + filename
 
 
-def serialize(obj: dict, filename: str):
+def serialize(obj: object, filename: str):
     file = get_absolute_file_path(filename)
+    if not os.path.exists(os.path.dirname(file)):
+        os.makedirs(os.path.dirname(file))
+
     with open(file, 'w+') as wfile:
         json.dump(obj, wfile)
 
 
-def deserialize(filename: str) -> Optional[dict]:
+def deserialize(filename: str) -> Optional[object]:
     file = get_absolute_file_path(filename)
     try:
         with open(file, 'r') as rfile:

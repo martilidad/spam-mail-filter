@@ -24,6 +24,9 @@ class Config:
         folder_config = parser['folder']
         self.inbox = folder_config.get('inbox', 'INBOX')
         self.spam_folder = folder_config.get('spam_folder')
+        self.train_ham_mailbox = folder_config.get('train_ham_mailbox')
+        self.train_spam_mailbox = folder_config.get('train_spam_mailbox')
 
         process_config = parser['process']
         self.dryrun = process_config.getboolean('dryrun', False)
+        self.usermail_training = process_config.getboolean('usermail_training', False)
