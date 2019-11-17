@@ -1,3 +1,5 @@
+import os
+
 from scipy import sparse
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -88,6 +90,7 @@ class BayesClassifier(Classifier, Serializable['BayesClassifier']):
     def serialize(self):
         base_folder = SerializationUtils.get_absolute_file_path(
             self.save_folder)
+        os.mkdir(base_folder)
         np.save(base_folder + "/labels", self.train_labels)
         sparse.save_npz(base_folder + "/mails", self.vectorized_mails)
         SerializationUtils.serialize(self.vocabulary,
