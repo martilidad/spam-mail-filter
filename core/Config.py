@@ -1,6 +1,9 @@
 import os
 from configparser import ConfigParser
 
+from core.CheckMode import CheckMode
+from core.StartMode import StartMode
+
 
 class Config:
     def __init__(self):
@@ -28,6 +31,9 @@ class Config:
         self.train_spam_mailbox = folder_config.get('train_spam_mailbox')
 
         process_config = parser['process']
+        self.start_mode = StartMode[process_config.get('start_mode',
+                                                       'training')]
+        self.check_mode = CheckMode[process_config.get('check_mode', 'normal')]
         self.dryrun = process_config.getboolean('dryrun', False)
         self.usermail_training = process_config.getboolean(
             'usermail_training', False)
