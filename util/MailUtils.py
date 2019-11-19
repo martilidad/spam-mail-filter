@@ -17,11 +17,6 @@ def string_to_mail(string) -> Mail:
     return Mail(string, '')
 
 
-def messages_to_strings(message):
-    mails = messages_to_mails(message)
-    return mails_to_strings(mails)
-
-
 def messages_to_mails(messages: [Message]) -> [Mail]:
     return [message_to_mail(message) for message in messages]
 
