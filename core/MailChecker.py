@@ -41,8 +41,11 @@ class MailChecker(threading.Thread):
                 MailUtils.messages_to_mails([message]))
             if score[0] > self.config.score_threshold:
                 print("spam detected")
-                if self.config.check_mode is not CheckMode.DRYRUN and self.config.spam_folder is not None:
+                if self.config.check_mode is CheckMode.NORMAL and self.config.spam_folder is not None:
                     self.imap.move_mail(uid, self.config.spam_folder)
+                elif self.config.check_mode is CheckMode.FLAGGING:
+                    self.imap.flag_mail(uid)
+                # else DRYRUN: nothing to do
             else:
                 print("ham detected")
         self.__store_new_checke_uids(old_checked_uids, new_uids)

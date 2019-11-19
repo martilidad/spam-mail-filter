@@ -45,3 +45,6 @@ class ImapClient(MailClient):
         if result[0] == 'OK':
             self.conn.uid('STORE', uid, '+FLAGS', '(\Deleted)')
             self.conn.expunge()
+
+    def flag_mail(self, uid: bytes):
+        self.conn.uid('STORE', uid, '+FLAGS', '(\Flagged)')

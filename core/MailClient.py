@@ -34,3 +34,7 @@ class MailClient:
     @abstractmethod
     def move_mail(self, uid: bytes, destination: str):
         pass
+
+    @abstractmethod
+    def flag_mail(self, uid: bytes):
+        pass
