@@ -1,7 +1,8 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-from bayes.BayesClassifier import BayesClassifier
+from classification.Classifier import Classifier
+from classification.bayes.BayesClassifier import BayesClassifier
 from core.CheckMode import CheckMode
 from core.Config import Config
 from core.EnronDataset import EnronDataset
@@ -27,7 +28,8 @@ class SpamFilter:
         self.imap = ImapClient(self.config.host, self.config.port)
         self.mailChecker = MailChecker(self.imap, self.classifier, self.config)
 
-    def __load_initial_classifier(self) -> BayesClassifier:
+    def __load_initial_classifier(self) -> Classifier:
+        # TODO replace with delegating classifier
         start_mode = self.config.start_mode
         if start_mode is StartMode.TRAINING:
             # do trainig

@@ -1,8 +1,10 @@
 from core.Mail import Mail
 from abc import abstractmethod
 
+from core.Serializable import Serializable
 
-class Classifier:
+
+class Classifier(Serializable):
     @abstractmethod
     def __init__(self, train_mails: [Mail] = None, train_labels: [int] = None):
         pass

@@ -7,10 +7,11 @@ from sklearn.exceptions import NotFittedError
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 
-from core.Classifier import Classifier
+from classification.Classifier import Classifier
 from core.Mail import Mail
+from core.MailAttributes import MailAttributes
 from core.NotTrainedException import NotTrainedException
-from core.Serializable import Serializable, T
+from core.Serializable import Serializable
 from util import MailUtils, SerializationUtils
 
 
@@ -18,16 +19,17 @@ class BayesClassifier(Classifier, Serializable['BayesClassifier']):
 
     save_folder = "bayes_classifier/"
 
-    def __init__(self, train_mails: [Mail] = None, train_labels: [int] = None):
+    def __init__(self, train_mails: [Mail] = None, train_labels: [int] = None, target_attribute=MailAttributes.BODY):
         super().__init__(train_mails, train_labels)
         self.vocabulary: dict = {}
         self.vectorizer: CountVectorizer
         self.vectorized_mails: csr_matrix
+        self.target_attribute: MailAttributes = target_attribute
         if train_mails is not None and train_labels is not None:
             self.train_labels = train_labels
             self.update_vocabulary(train_mails)
-            self.vectorized_mails: csr_matrix = self.vectorizer.transform(
-                MailUtils.mails_to_strings(train_mails))
+            self.vectorized_mails: csr_matrix = self.vectorizer.\
+                transform([self.target_attribute(mail) for mail in train_mails])
         else:
             self.vectorized_mails = None
             self.train_labels: [int] = []
@@ -47,7 +49,7 @@ class BayesClassifier(Classifier, Serializable['BayesClassifier']):
         # see CountVectorizer.fit_transform for limit example
         # vectorizer without vocabulary
         vectorizer = self.create_vectorizer()
-        vocab, _ = vectorizer._count_vocab(MailUtils.mails_to_strings(mails),
+        vocab, _ = vectorizer._count_vocab([self.target_attribute(mail) for mail in mails],
                                            False)
         # merge vocabularies
         i = len(self.vocabulary)
@@ -64,7 +66,7 @@ class BayesClassifier(Classifier, Serializable['BayesClassifier']):
             self.update_vocabulary(mails)
             # most resilient list concatenation
             vector: csr_matrix = self.vectorizer.transform(
-                MailUtils.mails_to_strings(mails))
+                [self.target_attribute(mail) for mail in mails])
             if self.vectorized_mails is not None:
                 vector.resize(vector.shape[0], len(self.vocabulary))
                 self.vectorized_mails.resize(self.vectorized_mails.shape[0],
@@ -79,7 +81,7 @@ class BayesClassifier(Classifier, Serializable['BayesClassifier']):
 
     def classify(self, mails: [Mail]) -> [float]:
         vectorized_mails = self.vectorizer.transform(
-            MailUtils.mails_to_strings(mails))
+            [self.target_attribute(mail) for mail in mails])
         try:
             return self.classifier.predict(vectorized_mails)
         except NotFittedError:
