@@ -1,7 +1,7 @@
+import os
 from abc import abstractmethod
 
 import sklearn.datasets as datasets
-import os
 
 
 class Dataset:

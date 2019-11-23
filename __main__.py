@@ -1,6 +1,7 @@
-from core.SpamFilter import SpamFilter
 import signal
 import time
+
+from core.SpamFilter import SpamFilter
 
 
 class ProgramKilled(Exception):

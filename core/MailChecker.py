@@ -1,6 +1,7 @@
+import threading
+
 from core.CheckMode import CheckMode
 from util import MailUtils, SerializationUtils
-import threading
 
 
 class MailChecker(threading.Thread):

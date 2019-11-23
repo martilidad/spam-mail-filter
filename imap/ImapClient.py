@@ -1,5 +1,6 @@
-import imaplib  # https://docs.python.org/3/library/imaplib.html
 import email  # https://docs.python.org/3/library/email.html
+import imaplib  # https://docs.python.org/3/library/imaplib.html
+
 from core.MailClient import MailClient
 
 

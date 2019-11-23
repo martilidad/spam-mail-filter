@@ -3,9 +3,9 @@ from unittest import TestCase
 from sklearn.metrics import accuracy_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 
-from bayes.BayesClassifier import BayesClassifier
+from classification.bayes.BayesClassifier import BayesClassifier
 from core.EnronDataset import EnronDataset
-from util import MailUtils, SerializationUtils
+from util import MailUtils
 
 
 class TestBayesClassifier(TestCase):

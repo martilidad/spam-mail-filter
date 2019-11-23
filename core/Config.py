@@ -1,6 +1,7 @@
 import os
 from configparser import ConfigParser
 
+from classification.ClassificationConfig import ClassificationConfig
 from core.CheckMode import CheckMode
 from core.StartMode import StartMode
 
@@ -29,6 +30,9 @@ class Config:
         self.spam_folder = folder_config.get('spam_folder')
         self.train_ham_mailbox = folder_config.get('train_ham_mailbox')
         self.train_spam_mailbox = folder_config.get('train_spam_mailbox')
+
+        self.classification_config = ClassificationConfig(
+            parser['classification'])
 
         process_config = parser['process']
         self.start_mode = StartMode[process_config.get('start_mode',
