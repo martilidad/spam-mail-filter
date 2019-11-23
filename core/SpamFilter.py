@@ -2,7 +2,6 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 from classification.Classifier import Classifier
-from classification.bayes.BayesClassifier import BayesClassifier
 from core.CheckMode import CheckMode
 from core.Config import Config
 from core.EnronDataset import EnronDataset
@@ -38,17 +37,20 @@ class SpamFilter:
                                                                data.target,
                                                                train_size=0.6)
             train_mails = MailUtils.strings_to_mails(train_texts)
-            classifier = BayesClassifier(train_mails, train_labels)
+            classifier = self.config.classification_config.load_classifier(
+                train_mails, train_labels)
         elif start_mode is StartMode.PRETRAINED:
-            classifier = BayesClassifier.deserialize()
+            classifier = self.config.classification_config.load_classifier()
+            classifier.deserialize()
         elif start_mode is StartMode.NO_TRAINING:
-            return BayesClassifier()
+            return self.config.classification_config.load_classifier()
         elif start_mode is StartMode.USERMAIL_TRAINING:
             if self.config.train_ham_mailbox is None or self.config.train_spam_mailbox is None:
                 raise ValueError(
                     "Need configured training mailboxes for USERMAIL_TRAINING")
             train_mails, train_labels = self.__get_usermail_data()
-            classifier = BayesClassifier(train_mails, train_labels)
+            classifier = self.config.classification_config.load_classifier(
+                train_mails, train_labels)
         else:
             raise ValueError("Invalid value for start mode")
 
