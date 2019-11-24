@@ -85,7 +85,7 @@ class BayesClassifier(DelegatableClassifier, Serializable['BayesClassifier']):
         vectorized_mails = self.vectorizer.transform(
             [self.target_attribute(mail) for mail in mails])
         try:
-            return self.classifier.predict(vectorized_mails)
+            return self.classifier.predict_proba(vectorized_mails)[:, 1]
         except NotFittedError:
             raise NotTrainedException(
                 "This BayesClassifier instance is not trained yet. "
