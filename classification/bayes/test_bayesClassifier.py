@@ -7,6 +7,8 @@ from classification.bayes.BayesClassifier import BayesClassifier
 from core.EnronDataset import EnronDataset
 from util import MailUtils
 
+LIPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore"
+
 
 class TestBayesClassifier(TestCase):
     def setUp(self) -> None:
@@ -21,7 +23,7 @@ class TestBayesClassifier(TestCase):
 
     def test_classify(self):
         predictions = self.fixture.classify(self.test_mails)
-
+        predictions = predictions > 0.5
         accuracy = accuracy_score(self.test_labels, predictions)
         self.assertGreater(accuracy, 0.9)
         print('Accuracy score: ', accuracy)
@@ -39,6 +41,7 @@ class TestBayesClassifier(TestCase):
         classifier.train(train_mails[:200], train_labels[:200])
         classifier.train(train_mails[200:], train_labels[200:])
         predictions = classifier.classify(test_mails)
+        predictions = predictions > 0.5
         accuracy = accuracy_score(test_labels, predictions)
         self.assertGreater(accuracy, 0.9)
         print('Accuracy score: ', accuracy)
@@ -50,10 +53,18 @@ class TestBayesClassifier(TestCase):
         result = BayesClassifier.deserialize()
         result.train()
         predictions = self.fixture.classify(self.test_mails)
+        predictions = predictions > 0.5
         accuracy = accuracy_score(self.test_labels, predictions)
 
-        result_predictions = result.classify(self.test_mails)
+        result_predictions = result.classify(self.test_mails) > 0.5
         result_accuracy = accuracy_score(self.test_labels, result_predictions)
 
         self.assertEqual(accuracy, result_accuracy)
         # Testing vocab, vector, etc. equality would take forever here.
+
+    def test_partial_features_missing(self):
+        self.fixture = BayesClassifier()
+        test_mails = MailUtils.strings_to_mails(['', '', LIPSUM, ''])
+        test_labels = [0, 1, 0, 1]
+        self.fixture.train(test_mails, test_labels)
+        self.fixture.classify(test_mails)

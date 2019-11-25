@@ -33,7 +33,9 @@ class SpamFilter:
             train_texts, _, train_labels, _ = train_test_split(data.data,
                                                                data.target,
                                                                train_size=0.6)
-            train_mails = MailUtils.strings_to_mails(train_texts)
+            train_mails = [
+                EnronDataset.enron_string_to_mail(text) for text in train_texts
+            ]
             classifier = self.config.classification_config.load_classifier(
                 train_mails, train_labels)
         elif start_mode is StartMode.PRETRAINED:

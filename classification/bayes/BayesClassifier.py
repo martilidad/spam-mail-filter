@@ -5,10 +5,10 @@ import numpy as np
 from scipy import sparse
 from scipy.sparse import csr_matrix
 from sklearn.exceptions import NotFittedError
-from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 
 from classification.DelegatableClassifier import DelegatableClassifier
+from classification.bayes.OnlineCountVectorizer import OnlineCountVectorizer
 from core.Mail import Mail
 from core.MailAttributes import MailAttributes
 from core.NotTrainedException import NotTrainedException
@@ -23,51 +23,23 @@ class BayesClassifier(DelegatableClassifier, Serializable['BayesClassifier']):
                  train_labels: [int] = None,
                  target_attribute=MailAttributes.BODY):
         super().__init__(train_mails, train_labels, target_attribute)
-        self.vocabulary: dict = {}
-        self.vectorizer: CountVectorizer
+        self.vectorizer: OnlineCountVectorizer = OnlineCountVectorizer()
         self.vectorized_mails: csr_matrix
         self.target_attribute: MailAttributes = target_attribute
         if train_mails is not None and train_labels is not None:
             self.train_labels = train_labels
-            self.update_vocabulary(train_mails)
             self.vectorized_mails: csr_matrix = self.vectorizer. \
-                transform([self.target_attribute(mail) for mail in train_mails])
+                fit_transform([self.target_attribute(mail) for mail in train_mails])
         else:
             self.vectorized_mails = None
             self.train_labels: [int] = []
         self.classifier = MultinomialNB()
 
-    @staticmethod
-    def create_vectorizer(vocabulary=None) -> CountVectorizer:
-        return CountVectorizer(strip_accents='unicode',
-                               token_pattern=u'(?ui)\\b\\w*[a-z]+\\w*\\b',
-                               lowercase=True,
-                               stop_words='english',
-                               decode_error='replace',
-                               vocabulary=vocabulary)
-
-    def update_vocabulary(self, mails: [Mail]):
-        # TODO move this messy code to a custom vectorizer and limit vocabulary
-        # see CountVectorizer.fit_transform for limit example
-        # vectorizer without vocabulary
-        vectorizer = self.create_vectorizer()
-        vocab, _ = vectorizer._count_vocab(
-            [self.target_attribute(mail) for mail in mails], False)
-        # merge vocabularies
-        i = len(self.vocabulary)
-        for key in vocab.keys():
-            if key not in self.vocabulary.keys():
-                self.vocabulary[key] = i
-                i += 1
-        # update vectorizer
-        self.vectorizer = self.create_vectorizer(self.vocabulary)
-
     def train(self, mails: [Mail] = None, labels: [int] = None):
         if mails is not None and labels is not None:
             self.train_labels = [*self.train_labels, *labels]
-            self.update_vocabulary(mails)
             # most resilient list concatenation
-            vector: csr_matrix = self.vectorizer.transform(
+            vector: csr_matrix = self.vectorizer.fit_transform(
                 [self.target_attribute(mail) for mail in mails])
             if self.vectorized_mails is not None:
                 vector.resize(vector.shape[0], len(self.vocabulary))
@@ -99,7 +71,13 @@ class BayesClassifier(DelegatableClassifier, Serializable['BayesClassifier']):
         np.save(base_folder + "/labels", self.train_labels)
         sparse.save_npz(base_folder + "/mails", self.vectorized_mails)
         with open(base_folder + "/vocab", 'w+') as wfile:
-            json.dump(self.vocabulary, wfile)
+            json.dump(self.vectorizer.vocabulary, wfile, default=self.convert)
+
+    @staticmethod
+    def convert(o):
+        if isinstance(o, np.integer):
+            return int(o)
+        raise TypeError("Unable to serialize " + o.dtype)
 
     def deserialize(self, sub_folder: str = None) -> 'BayesClassifier':
         base_folder = self.resolve_folder(
@@ -108,6 +86,6 @@ class BayesClassifier(DelegatableClassifier, Serializable['BayesClassifier']):
         self.vectorized_mails = sparse.load_npz(base_folder + "/mails" +
                                                 ".npz")
         with open(base_folder + "/vocab", 'r') as rfile:
-            self.vocabulary = json.load(rfile)
-        self.vectorizer = self.create_vectorizer(self.vocabulary)
+            vocabulary = json.load(rfile)
+            self.vectorizer = OnlineCountVectorizer(vocabulary)
         return self
