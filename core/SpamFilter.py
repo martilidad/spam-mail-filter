@@ -23,12 +23,9 @@ class SpamFilter:
             self.classifier.serialize()
             exit(0)
 
-        # init imapClient with host
-        self.imap = ImapClient(self.config.host, self.config.port)
-        self.mailChecker = MailChecker(self.imap, self.classifier, self.config)
+        self.mailChecker = MailChecker(self.classifier, self.config)
 
     def __load_initial_classifier(self) -> Classifier:
-        # TODO replace with delegating classifier
         start_mode = self.config.start_mode
         if start_mode is StartMode.TRAINING:
             # do trainig
@@ -58,12 +55,10 @@ class SpamFilter:
         return classifier
 
     def start(self):
-        self.imap.login(self.config.username, self.config.password)
         self.mailChecker.start()
 
     def stop(self):
         self.mailChecker.stop()
-        self.imap.logout()
         self.classifier.serialize()
 
     def __get_usermail_data(self):
