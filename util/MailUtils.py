@@ -32,7 +32,7 @@ def message_to_mail(message):
 def opt_header_to_str(message: Message, header) -> str:
     results = message.get_all(header)
     if len(results) > 0:
-        return results[0]
+        return str(results[0])
     return ''
 
 

@@ -77,7 +77,7 @@ class SpamFilter:
         imap.select_mailbox(self.config.train_spam_mailbox)
         spam_uids = imap.get_all_uids()
         for i, uid in enumerate(spam_uids):
-            if i > self.config.max_train_mails:
+            if i >= self.config.max_train_mails:
                 break
             message = imap.get_mail_for_uid(uid)
             texts.append(message)
@@ -86,7 +86,7 @@ class SpamFilter:
         imap.select_mailbox(self.config.train_ham_mailbox)
         ham_uids = imap.get_all_uids()
         for i, uid in enumerate(ham_uids):
-            if i > self.config.max_train_mails:
+            if i >= self.config.max_train_mails:
                 break
             message = imap.get_mail_for_uid(uid)
             texts.append(message)
