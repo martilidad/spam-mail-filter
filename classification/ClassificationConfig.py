@@ -43,10 +43,13 @@ class ClassificationConfig:
         weights = []
         for key in self.INTERNAL_CONFIG.keys():
             subconfig: dict = self.INTERNAL_CONFIG[key]
+            weight_ = subconfig["Weight"]
+            if weight_ == 0:
+                continue
             delegate = subconfig["Classifier"](
                 train_mails,
                 train_labels,
                 target_attribute=subconfig["Attribute"])
             delegates = [*delegates, delegate]
-            weights = [*weights, subconfig["Weight"]]
+            weights = [*weights, weight_]
         return DelegatingClassifier(delegates, weights)
