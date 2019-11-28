@@ -33,8 +33,11 @@ class Config:
         self.train_ham_mailbox = folder_config.get('train_ham_mailbox')
         self.train_spam_mailbox = folder_config.get('train_spam_mailbox')
 
+        self.google_api_token = parser['external'].get('google_api_token',
+                                                       None)
+
         self.classification_config = ClassificationConfig(
-            parser['classification'])
+            parser['classification'], self)
 
         process_config = parser['process']
         self.configure_logging(process_config)
