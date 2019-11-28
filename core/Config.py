@@ -33,8 +33,11 @@ class Config:
         self.train_ham_mailbox = folder_config.get('train_ham_mailbox')
         self.train_spam_mailbox = folder_config.get('train_spam_mailbox')
 
+        self.google_api_token = parser['external'].get('google_api_token',
+                                                       None)
+
         self.classification_config = ClassificationConfig(
-            parser['classification'])
+            parser['classification'], self)
 
         process_config = parser['process']
         self.configure_logging(process_config)
@@ -51,13 +54,20 @@ class Config:
         if process_config.getboolean('create_logfiles', False):
             logdir = os.path.dirname(__file__) + "/../log/"
             os.makedirs(logdir, exist_ok=True)
-            filename = datetime.datetime.now().replace(microsecond=0).isoformat().replace(':', '-') + ".log"
+            filename = datetime.datetime.now().replace(
+                microsecond=0).isoformat().replace(':', '-') + ".log"
             logfile = logdir + "spamfilter_" + filename
-            logging.basicConfig(level=logging.DEBUG, filename=logfile, filemode='w',
-                                format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-                                datefmt='%y-%m-%d %H:%M', )
+            logging.basicConfig(
+                level=logging.DEBUG,
+                filename=logfile,
+                filemode='w',
+                format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                datefmt='%y-%m-%d %H:%M',
+            )
         console = logging.StreamHandler()
-        console_level = logging._nameToLevel[process_config.get('console_log_level', 'INFO')]
+        console_level = logging._nameToLevel[process_config.get(
+            'console_log_level', 'INFO')]
         console.setLevel(console_level)
-        console.setFormatter(logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s'))
+        console.setFormatter(
+            logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s'))
         logging.getLogger('').addHandler(console)

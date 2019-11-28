@@ -21,8 +21,9 @@ class BayesClassifier(DelegatableClassifier, Serializable['BayesClassifier']):
     def __init__(self,
                  train_mails: [Mail] = None,
                  train_labels: [int] = None,
-                 target_attribute=MailAttributes.BODY):
-        super().__init__(train_mails, train_labels, target_attribute)
+                 target_attribute=MailAttributes.BODY,
+                 config=None):
+        super().__init__(train_mails, train_labels, target_attribute, config)
         self.vectorizer: OnlineCountVectorizer = OnlineCountVectorizer()
         self.vectorized_mails: csr_matrix
         self.target_attribute: MailAttributes = target_attribute
