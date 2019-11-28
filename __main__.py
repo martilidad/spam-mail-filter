@@ -1,3 +1,4 @@
+import logging
 import signal
 import time
 
@@ -22,6 +23,6 @@ if __name__ == '__main__':
         try:
             time.sleep(1)
         except ProgramKilled:
-            print("Program killed: running cleanup code")
+            logging.debug("Program killed: running cleanup code")
             sf.stop()
             break

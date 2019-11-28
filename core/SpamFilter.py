@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 from sklearn.model_selection import train_test_split
 
@@ -16,10 +18,10 @@ class SpamFilter:
         self.config = Config()
 
         self.classifier = self.__load_initial_classifier()
-        print("Completed Loading the Classifier")
+        logging.debug("Completed Loading the Classifier")
 
         if self.config.check_mode is CheckMode.NONE:
-            print("Shutting down because check_mode is none")
+            logging.info("Shutting down because check_mode is none")
             self.classifier.serialize()
             exit(0)
 
@@ -28,6 +30,7 @@ class SpamFilter:
     def __load_initial_classifier(self) -> Classifier:
         start_mode = self.config.start_mode
         if start_mode is StartMode.TRAINING:
+            logging.debug("Starting to load training data from disk.")
             # do trainig
             data = EnronDataset().load_files()
             train_texts, _, train_labels, _ = train_test_split(data.data,
@@ -44,6 +47,7 @@ class SpamFilter:
         elif start_mode is StartMode.NO_TRAINING:
             return self.config.classification_config.load_classifier()
         elif start_mode is StartMode.USERMAIL_TRAINING:
+            logging.debug("Starting to load training data from mail server.")
             if self.config.train_ham_mailbox is None or self.config.train_spam_mailbox is None:
                 raise ValueError(
                     "Need configured training mailboxes for USERMAIL_TRAINING")
@@ -52,7 +56,7 @@ class SpamFilter:
                 train_mails, train_labels)
         else:
             raise ValueError("Invalid value for start mode")
-
+        logging.debug("Starting training.")
         classifier.train()
         return classifier
 

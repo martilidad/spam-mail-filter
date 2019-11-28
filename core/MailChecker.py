@@ -1,3 +1,4 @@
+import logging
 import threading
 
 from core.CheckMode import CheckMode
@@ -33,7 +34,7 @@ class MailChecker(threading.Thread):
         SerializationUtils.serialize(new_checked_uids, self.config.trackfile)
 
     def __mail_check(self):
-        print("checking mails")
+        logging.info("checking mails")
         imap = ImapClient(self.config.host, self.config.port)
         imap.login(self.config.username, self.config.password)
         imap.select_mailbox(self.config.inbox)
@@ -43,17 +44,17 @@ class MailChecker(threading.Thread):
             score = self.classifier.classify(
                 MailUtils.messages_to_mails([message]))
             if score[0] > self.config.score_threshold:
-                print("spam detected")
+                logging.debug("spam detected")
                 if self.config.check_mode is CheckMode.NORMAL and self.config.spam_folder is not None:
                     imap.move_mail(uid, self.config.spam_folder)
                 elif self.config.check_mode is CheckMode.FLAGGING:
                     imap.flag_mail(uid)
                 # else DRYRUN: nothing to do
             else:
-                print("ham detected")
+                logging.debug("ham detected")
         self.__store_new_checke_uids(old_checked_uids, new_uids)
         imap.logout()
-        print("mailcheck complete")
+        logging.debug("mailcheck complete")
 
     def stop(self):
         self.stopped.set()
