@@ -69,29 +69,32 @@ class SpamFilter:
 
     def __get_usermail_data(self):
         # TODO trained mails should be added to trackfile
-        # what if spam or ham folder is much bigger than the other one?
         imap = ImapClient(self.config.host, self.config.port)
         imap.login(self.config.username, self.config.password)
-        texts = []
-        labels = []
+        batch_size = self.config.batch_size
+        max_train_mails = self.config.max_train_mails
 
         imap.select_mailbox(self.config.train_spam_mailbox)
         spam_uids = imap.get_all_uids()
-        for i, uid in enumerate(spam_uids):
-            if i >= self.config.max_train_mails:
+        spam_texts = []
+        for i in range(0, max_train_mails, batch_size):
+            end = min(i + batch_size, max_train_mails)
+            uids = spam_uids[i:end]
+            if not uids:
                 break
-            message = imap.get_mail_for_uid(uid)
-            texts.append(message)
-            labels.append(1)  # label 1 is "spam"
+            spam_texts += imap.get_mails_for_uids(uids)
+        labels = [1] * len(spam_texts)
 
         imap.select_mailbox(self.config.train_ham_mailbox)
         ham_uids = imap.get_all_uids()
-        for i, uid in enumerate(ham_uids):
-            if i >= self.config.max_train_mails:
+        ham_texts = []
+        for i in range(0, max_train_mails, batch_size):
+            end = min(i + batch_size, max_train_mails)
+            uids = ham_uids[i:end]
+            if not uids:
                 break
-            message = imap.get_mail_for_uid(uid)
-            texts.append(message)
-            labels.append(0)  # label 0 is "ham"
+            ham_texts += imap.get_mails_for_uids(uids)
+        labels = labels + [0] * len(ham_texts)
 
         imap.logout()
-        return MailUtils.messages_to_mails(texts), np.array(labels)
+        return MailUtils.messages_to_mails(spam_texts + ham_texts), np.array(labels)
