@@ -97,4 +97,5 @@ class SpamFilter:
         labels = labels + [0] * len(ham_texts)
 
         imap.logout()
-        return MailUtils.messages_to_mails(spam_texts + ham_texts), np.array(labels)
+        return MailUtils.messages_to_mails(spam_texts +
+                                           ham_texts), np.array(labels)

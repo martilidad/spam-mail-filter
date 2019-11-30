@@ -38,7 +38,7 @@ class ImapClient(MailClient):
         if data[0] is None:
             return mails
 
-        for i in range(len(uids)):
+        for i in range(int(len(data) / 2)):
             body = data[i * 2][1]
             if isinstance(body, bytes):
                 mail = email.message_from_bytes(body)

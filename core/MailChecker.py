@@ -39,19 +39,21 @@ class MailChecker(threading.Thread):
         imap.login(self.config.username, self.config.password)
         imap.select_mailbox(self.config.inbox)
         new_uids, old_checked_uids = self.__retrieve_new_uids(imap)
-        for uid in new_uids:
-            message = imap.get_mail_for_uid(uid)
-            score = self.classifier.classify(
-                MailUtils.messages_to_mails([message]))
-            if score[0] > self.config.score_threshold:
-                logging.debug("spam detected")
-                if self.config.check_mode is CheckMode.NORMAL and self.config.spam_folder is not None:
-                    imap.move_mail(uid, self.config.spam_folder)
-                elif self.config.check_mode is CheckMode.FLAGGING:
-                    imap.flag_mail(uid)
-                # else DRYRUN: nothing to do
-            else:
-                logging.debug("ham detected")
+        for i in range(0, len(new_uids), self.config.batch_size):
+            uids = new_uids[i:i + self.config.batch_size]
+            messages = imap.get_mails_for_uids(uids)
+            scores = self.classifier.classify(
+                MailUtils.messages_to_mails(messages))
+            for score, uid in zip(scores, uids):
+                if score > self.config.score_threshold:
+                    logging.debug("spam detected")
+                    if self.config.check_mode is CheckMode.NORMAL and self.config.spam_folder is not None:
+                        imap.move_mail(uid, self.config.spam_folder)
+                    elif self.config.check_mode is CheckMode.FLAGGING:
+                        imap.flag_mail(uid)
+                    # else DRYRUN: nothing to do
+                else:
+                    logging.debug("ham detected")
         self.__store_new_checke_uids(old_checked_uids, new_uids)
         imap.logout()
         logging.debug("mailcheck complete")
