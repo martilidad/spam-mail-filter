@@ -3,6 +3,7 @@ from configparser import RawConfigParser
 from classification.Classifier import Classifier
 from classification.DelegatingClassifier import DelegatingClassifier
 from classification.bayes.BayesClassifier import BayesClassifier
+from classification.urlcheck.URLClassifier import URLClassifier
 from core.MailAttributes import MailAttributes
 
 
@@ -24,18 +25,27 @@ class ClassificationConfig:
             "Attribute": MailAttributes.SUBJECT,
             "Config-Name": "subject_weight",
             "Weight": 0
+        },
+        "Urls": {
+            "Classifier": URLClassifier,
+            "Attribute": MailAttributes.BODY,
+            "Config-Name": "url_weight",
+            "Weight": 0
         }
     }
 
-    def __init__(self, config_section: RawConfigParser):
+    def __init__(self, config_section: RawConfigParser, config):
+        self.config = config
         sum = 0
         for key in self.INTERNAL_CONFIG.keys():
             subconfig: dict = self.INTERNAL_CONFIG[key]
             weight = config_section.getfloat(subconfig["Config-Name"], 0)
             subconfig["Weight"] = weight
             sum += weight
-        if sum != 1:
-            raise ValueError("Classification weights must sum up to 1")
+        if sum < 1:
+            raise ValueError(
+                "Classification weights must sum up to at least 1. "
+                "Use Checkmode None instead, if applicable.")
 
     def load_classifier(self, train_mails=None,
                         train_labels=None) -> Classifier:
@@ -49,7 +59,8 @@ class ClassificationConfig:
             delegate = subconfig["Classifier"](
                 train_mails,
                 train_labels,
-                target_attribute=subconfig["Attribute"])
+                target_attribute=subconfig["Attribute"],
+                config=self.config)
             delegates = [*delegates, delegate]
             weights = [*weights, weight_]
         return DelegatingClassifier(delegates, weights)
