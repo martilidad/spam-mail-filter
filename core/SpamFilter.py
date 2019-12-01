@@ -72,27 +72,20 @@ class SpamFilter:
         imap = ImapClient(self.config.host, self.config.port)
         imap.login(self.config.username, self.config.password)
         batch_size = self.config.batch_size
-        max_train_mails = self.config.max_train_mails
 
         imap.select_mailbox(self.config.train_spam_mailbox)
-        spam_uids = imap.get_all_uids()
+        spam_uids = imap.get_all_uids()[0:self.config.max_train_mails]
         spam_texts = []
-        for i in range(0, max_train_mails, batch_size):
-            end = min(i + batch_size, max_train_mails)
-            uids = spam_uids[i:end]
-            if not uids:
-                break
+        for i in range(0, len(spam_uids), batch_size):
+            uids = spam_uids[i:i + batch_size]
             spam_texts += imap.get_mails_for_uids(uids)
         labels = [1] * len(spam_texts)
 
         imap.select_mailbox(self.config.train_ham_mailbox)
-        ham_uids = imap.get_all_uids()
+        ham_uids = imap.get_all_uids()[0:self.config.max_train_mails]
         ham_texts = []
-        for i in range(0, max_train_mails, batch_size):
-            end = min(i + batch_size, max_train_mails)
-            uids = ham_uids[i:end]
-            if not uids:
-                break
+        for i in range(0, len(ham_uids), batch_size):
+            uids = ham_uids[i:i + batch_size]
             ham_texts += imap.get_mails_for_uids(uids)
         labels = labels + [0] * len(ham_texts)
 
