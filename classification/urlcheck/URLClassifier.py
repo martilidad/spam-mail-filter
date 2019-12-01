@@ -1,5 +1,6 @@
 import logging
 
+import numpy as np
 from pysafebrowsing import SafeBrowsing
 from urlextract import URLExtract
 
@@ -14,8 +15,12 @@ class URLClassifier(DelegatableClassifier):
                  target_attribute: MailAttributes, config):
         api_token = config.google_api_token
         if api_token is None:
-            logging.fatal("Google API Token is not set. Unable to initialize URLClassifier.")
-            raise ValueError("Google API Token is not set. Unable to initialize URLClassifier.")
+            logging.fatal(
+                "Google API Token is not set. Unable to initialize URLClassifier."
+            )
+            raise ValueError(
+                "Google API Token is not set. Unable to initialize URLClassifier."
+            )
         self.target_attribute = target_attribute
         self.safe_browsing = SafeBrowsing(api_token)
         self.url_extractor = URLExtract()
@@ -44,7 +49,11 @@ class URLClassifier(DelegatableClassifier):
         ]
 
     def check_urls(self, urls: [str]):
-        response = self.safe_browsing.lookup_urls(urls)
+        # api only supports 500 urls at a time
+        needed_parts = int(len(urls) / 500) + 1
+        response = {}
+        for batch in np.array_split(urls, needed_parts):
+            response.update(self.safe_browsing.lookup_urls(batch))
         for url in urls:
             self.checked_urls[url] = response[url]['malicious']
 
