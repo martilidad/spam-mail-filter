@@ -7,7 +7,8 @@ from util import SerializationUtils
 
 
 class BlacklistClassifier(DelegatableClassifier):
-    def __init__(self, train_mails: List[Mail], train_labels: List[int], target_attribute: MailAttributes, config):
+    def __init__(self, train_mails: List[Mail], train_labels: List[int],
+                 target_attribute: MailAttributes, config):
         super().__init__(train_mails, train_labels, target_attribute, config)
         self.target_attribute = target_attribute
         self.blacklist_file = "blacklist/" + self.target_attribute.__name__

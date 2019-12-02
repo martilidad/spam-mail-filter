@@ -14,4 +14,4 @@ class EnronDataset(Dataset):
     def enron_string_to_mail(text: str):
         subject = SUBJECT_PREFIX
         stop = text.find(LINESEP)
-        return Mail(text[stop + len(LINESEP):], text[len(subject):stop], None)
+        return Mail(text[stop + len(LINESEP):], text[len(subject):stop], '')

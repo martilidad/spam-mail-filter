@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from email.message import Message
+from typing import List
 
 
 class MailClient:
@@ -20,7 +21,7 @@ class MailClient:
         pass
 
     @abstractmethod
-    def get_all_uids(self) -> [bytes]:
+    def get_all_uids(self) -> List[bytes]:
         pass
 
     @abstractmethod

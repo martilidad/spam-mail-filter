@@ -1,3 +1,5 @@
+from typing import List
+
 from scipy import sparse
 from scipy.sparse import csr_matrix
 from sklearn.feature_extraction.text import CountVectorizer
@@ -16,7 +18,7 @@ class OnlineCountVectorizer(CountVectorizer):
         self.update_vocabulary(raw_documents)
         return self.transform(raw_documents)
 
-    def update_vocabulary(self, raw_documents: [str]):
+    def update_vocabulary(self, raw_documents: List[str]):
         base_vocab = self.vocabulary
         self.__init__()
         try:

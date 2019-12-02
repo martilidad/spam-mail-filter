@@ -1,5 +1,6 @@
 import logging
 import threading
+from typing import List
 
 from core.CheckMode import CheckMode
 from imap.ImapClient import ImapClient
@@ -27,8 +28,8 @@ class MailChecker(threading.Thread):
         new_uids = [u for u in uids if int(u) not in old_checked_uids]
         return new_uids, old_checked_uids
 
-    def __store_new_checke_uids(self, old_checked_uids: [int],
-                                new_uids: [bytes]):
+    def __store_new_checke_uids(self, old_checked_uids: List[int],
+                                new_uids: List[bytes]):
         new_checked_uids = list(
             set(old_checked_uids + [int(u) for u in new_uids]))
         SerializationUtils.serialize(new_checked_uids, self.config.trackfile)

@@ -1,13 +1,14 @@
 from email.message import Message
+from typing import List
 
 from core.Mail import Mail
 
 
-def mails_to_strings(mails: [Mail]):
+def mails_to_strings(mails: List[Mail]):
     return [str(mail) for mail in mails]
 
 
-def strings_to_mails(strings: [str]) -> [Mail]:
+def strings_to_mails(strings: List[str]) -> List[Mail]:
     return [string_to_mail(string) for string in strings]
 
 
@@ -17,7 +18,7 @@ def string_to_mail(string) -> Mail:
     return Mail(string, '', '')
 
 
-def messages_to_mails(messages: [Message]) -> [Mail]:
+def messages_to_mails(messages: List[Message]) -> List[Mail]:
     return [message_to_mail(message) for message in messages]
 
 
@@ -37,7 +38,7 @@ def opt_header_to_str(message: Message, header) -> str:
     return ''
 
 
-def payload_list(message) -> [Message]:
+def payload_list(message) -> List[Message]:
     """
     This function unwraps all message parts for multipart mails into one list of messages
     :param message:
@@ -45,7 +46,7 @@ def payload_list(message) -> [Message]:
     """
     payloads = message.get_payload()
     if type(payloads) is list:
-        result = []
+        result: List[Message] = []
         for payload in payloads:
             otherList = payload_list(payload)
             result = [*result, *otherList]

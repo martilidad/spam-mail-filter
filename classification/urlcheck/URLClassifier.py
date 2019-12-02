@@ -8,12 +8,13 @@ from urlextract import URLExtract
 from classification.DelegatableClassifier import DelegatableClassifier
 from core.Mail import Mail
 from core.MailAttributes import MailAttributes
-from core.Serializable import T, Serializable
+from core.Serializable import Serializable
 
 
 class URLClassifier(DelegatableClassifier, Serializable['URLClassifier']):
     def __init__(self, train_mails: List[Mail], train_labels: List[int],
                  target_attribute: MailAttributes, config):
+        super().__init__(train_mails, train_labels, target_attribute, config)
         api_token = config.google_api_token
         if api_token is None:
             logging.fatal(

@@ -1,5 +1,6 @@
 import email  # https://docs.python.org/3/library/email.html
 import imaplib  # https://docs.python.org/3/library/imaplib.html
+from typing import List
 
 from core.MailClient import MailClient
 
@@ -18,7 +19,7 @@ class ImapClient(MailClient):
     def select_mailbox(self, mailbox: str):
         self.conn.select(mailbox)
 
-    def get_all_uids(self) -> [bytes]:
+    def get_all_uids(self) -> List[bytes]:
         result, uids = self.conn.uid('SEARCH', None, 'All')
         return uids[0].split()
 
@@ -31,10 +32,10 @@ class ImapClient(MailClient):
             mail = email.message_from_string(body)
         return mail
 
-    def get_mails_for_uids(self, uids: [bytes]) -> [email.message.Message]:
+    def get_mails_for_uids(self, uids: List[bytes]) -> List[email.message.Message]:
         comma_separated_uids = ','.join([uid.decode() for uid in uids])
         result, data = self.conn.uid('FETCH', comma_separated_uids, '(RFC822)')
-        mails = []
+        mails: List[email.message.Message] = []
         if data[0] is None:
             return mails
 

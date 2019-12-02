@@ -3,7 +3,6 @@ from typing import List
 from classification.Classifier import Classifier
 from classification.DelegatableClassifier import DelegatableClassifier
 from core.Mail import Mail
-from core.Serializable import T
 
 
 class DelegatingClassifier(Classifier):
