@@ -11,7 +11,7 @@ class BlacklistClassifier(DelegatableClassifier):
                  target_attribute: MailAttributes, config):
         super().__init__(train_mails, train_labels, target_attribute, config)
         self.target_attribute = target_attribute
-        self.blacklist_file = "blacklist/" + self.target_attribute.__name__
+        self.blacklist_file = "blacklist/" + self.target_attribute.name
 
     def train(self, mails: List[Mail] = None, labels: List[int] = None):
         pass

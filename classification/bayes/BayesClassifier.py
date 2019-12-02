@@ -65,7 +65,7 @@ class BayesClassifier(DelegatableClassifier, Serializable['BayesClassifier']):
     def serialize(self, sub_folder: str = None):
         # TODO clean up messy serialization code
         base_folder = self.resolve_folder(
-            sub_folder) + self.target_attribute.__name__ + "/"
+            sub_folder) + self.target_attribute.name + "/"
         os.makedirs(base_folder, exist_ok=True)
         np.save(base_folder + "/labels", self.train_labels)
         sparse.save_npz(base_folder + "/mails", self.vectorized_mails)
@@ -80,7 +80,7 @@ class BayesClassifier(DelegatableClassifier, Serializable['BayesClassifier']):
 
     def deserialize(self, sub_folder: str = None) -> 'BayesClassifier':
         base_folder = self.resolve_folder(
-            sub_folder) + self.target_attribute.__name__ + "/"
+            sub_folder) + self.target_attribute.name + "/"
         self.train_labels = np.load(base_folder + "/labels" + ".npy")
         self.vectorized_mails = sparse.load_npz(base_folder + "/mails" +
                                                 ".npz")
