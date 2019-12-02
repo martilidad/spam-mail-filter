@@ -1,4 +1,5 @@
 import logging
+from typing import List, Set
 
 import numpy as np
 from pysafebrowsing import SafeBrowsing
@@ -7,11 +8,11 @@ from urlextract import URLExtract
 from classification.DelegatableClassifier import DelegatableClassifier
 from core.Mail import Mail
 from core.MailAttributes import MailAttributes
-from core.Serializable import T
+from core.Serializable import T, Serializable
 
 
-class URLClassifier(DelegatableClassifier):
-    def __init__(self, train_mails: [Mail], train_labels: [int],
+class URLClassifier(DelegatableClassifier, Serializable['URLClassifier']):
+    def __init__(self, train_mails: List[Mail], train_labels: List[int],
                  target_attribute: MailAttributes, config):
         api_token = config.google_api_token
         if api_token is None:
@@ -24,18 +25,18 @@ class URLClassifier(DelegatableClassifier):
         self.target_attribute = target_attribute
         self.safe_browsing = SafeBrowsing(api_token)
         self.url_extractor = URLExtract()
-        self.checked_urls = {}
+        self.checked_urls: dict = {}
 
-    def train(self, mails: [Mail] = None, labels: [int] = None):
+    def train(self, mails: List[Mail] = None, labels: List[int] = None):
         pass
 
-    def classify(self, mails: [Mail]) -> [float]:
-        mail_dict = {}
-        new_urls = []
+    def classify(self, mails: List[Mail]) -> List[float]:
+        mail_dict: dict = {}
+        new_urls: set = set()
         for mail in mails:
             text = self.target_attribute(mail)
-            urls = self.url_extractor.find_urls(text)
-            new_urls = [*new_urls, *self.filter_new(urls)]
+            urls = set(self.url_extractor.find_urls(text, only_unique=True))
+            new_urls.update(self.filter_new(urls))
             mail_dict[mail] = urls
         # empty list is false
         if new_urls:
@@ -48,11 +49,11 @@ class URLClassifier(DelegatableClassifier):
             for mail in mails
         ]
 
-    def check_urls(self, urls: [str]):
+    def check_urls(self, urls: Set[str]):
         # api only supports 500 urls at a time
         needed_parts = int(len(urls) / 500) + 1
-        response = {}
-        for batch in np.array_split(urls, needed_parts):
+        response: dict = {}
+        for batch in np.array_split(list(urls), needed_parts):
             response.update(self.safe_browsing.lookup_urls(batch))
         for url in urls:
             self.checked_urls[url] = response[url]['malicious']
@@ -64,12 +65,12 @@ class URLClassifier(DelegatableClassifier):
     def serialize(self, sub_folder: str = None):
         pass
 
-    def deserialize(self, sub_folder: str = None) -> T:
+    def deserialize(self, sub_folder: str = None) -> 'URLClassifier':
         return self
 
-    def filter_new(self, urls):
-        new_urls = []
+    def filter_new(self, urls: set) -> set:
+        new_urls: set = set()
         for url in urls:
             if self.checked_urls.get(url) is None:
-                new_urls = [*new_urls, url]
+                new_urls.add(url)
         return new_urls

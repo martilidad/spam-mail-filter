@@ -1,3 +1,5 @@
+from scipy import sparse
+from scipy.sparse import csr_matrix
 from sklearn.feature_extraction.text import CountVectorizer
 
 
@@ -33,3 +35,11 @@ class OnlineCountVectorizer(CountVectorizer):
                 i += 1
         # update vectorizer
         self.__init__(base_vocab)
+
+    def combine(self, m1: csr_matrix, m2: csr_matrix) -> csr_matrix:
+        """
+        Combines two vectorized matrices to one complying to current vocabulary
+        """
+        m2.resize(m2.shape[0], len(self.vocabulary))
+        m1.resize(m2.shape[0], len(self.vocabulary))
+        return sparse.vstack((m1, m2))

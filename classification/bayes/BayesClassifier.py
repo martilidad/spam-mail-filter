@@ -1,5 +1,6 @@
 import json
 import os
+from typing import List
 
 import numpy as np
 from scipy import sparse
@@ -19,8 +20,8 @@ class BayesClassifier(DelegatableClassifier, Serializable['BayesClassifier']):
     save_folder = "bayes_classifier/"
 
     def __init__(self,
-                 train_mails: [Mail] = None,
-                 train_labels: [int] = None,
+                 train_mails: List[Mail] = None,
+                 train_labels: List[int] = None,
                  target_attribute=MailAttributes.BODY,
                  config=None):
         super().__init__(train_mails, train_labels, target_attribute, config)
@@ -29,32 +30,29 @@ class BayesClassifier(DelegatableClassifier, Serializable['BayesClassifier']):
         self.target_attribute: MailAttributes = target_attribute
         if train_mails is not None and train_labels is not None:
             self.train_labels = train_labels
-            self.vectorized_mails: csr_matrix = self.vectorizer. \
+            self.vectorized_mails = self.vectorizer. \
                 fit_transform([self.target_attribute(mail) for mail in train_mails])
         else:
             self.vectorized_mails = None
-            self.train_labels: [int] = []
+            self.train_labels = []
         self.classifier = MultinomialNB()
 
-    def train(self, mails: [Mail] = None, labels: [int] = None):
+    def train(self, mails: List[Mail] = None, labels: List[int] = None):
         if mails is not None and labels is not None:
             self.train_labels = [*self.train_labels, *labels]
             # most resilient list concatenation
             vector: csr_matrix = self.vectorizer.fit_transform(
                 [self.target_attribute(mail) for mail in mails])
             if self.vectorized_mails is not None:
-                vector.resize(vector.shape[0], len(self.vocabulary))
-                self.vectorized_mails.resize(self.vectorized_mails.shape[0],
-                                             len(self.vocabulary))
-                self.vectorized_mails = sparse.vstack(
-                    (self.vectorized_mails, vector))
+                self.vectorized_mails = self.vectorizer.combine(
+                    self.vectorized_mails, vector)
             else:
                 self.vectorized_mails = vector
         elif self.vectorized_mails is None:
             raise RuntimeError("the Classifier needs data")
         self.classifier.fit(self.vectorized_mails, self.train_labels)
 
-    def classify(self, mails: [Mail]) -> [float]:
+    def classify(self, mails: List[Mail]) -> List[float]:
         vectorized_mails = self.vectorizer.transform(
             [self.target_attribute(mail) for mail in mails])
         try:

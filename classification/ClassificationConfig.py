@@ -1,6 +1,8 @@
 from configparser import RawConfigParser
+from typing import List
 
 from classification.Classifier import Classifier
+from classification.DelegatableClassifier import DelegatableClassifier
 from classification.DelegatingClassifier import DelegatingClassifier
 from classification.bayes.BayesClassifier import BayesClassifier
 from classification.urlcheck.URLClassifier import URLClassifier
@@ -36,10 +38,10 @@ class ClassificationConfig:
 
     def __init__(self, config_section: RawConfigParser, config):
         self.config = config
-        sum = 0
+        sum = float(0)
         for key in self.INTERNAL_CONFIG.keys():
             subconfig: dict = self.INTERNAL_CONFIG[key]
-            weight = config_section.getfloat(subconfig["Config-Name"], 0)
+            weight = config_section.getfloat(subconfig["Config-Name"], '0')
             subconfig["Weight"] = weight
             sum += weight
         if sum < 1:
@@ -49,8 +51,8 @@ class ClassificationConfig:
 
     def load_classifier(self, train_mails=None,
                         train_labels=None) -> Classifier:
-        delegates = []
-        weights = []
+        delegates: List[DelegatableClassifier] = []
+        weights: List[float] = []
         for key in self.INTERNAL_CONFIG.keys():
             subconfig: dict = self.INTERNAL_CONFIG[key]
             weight_ = subconfig["Weight"]

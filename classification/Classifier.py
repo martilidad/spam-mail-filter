@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import List
 
 from core.Mail import Mail
 from core.Serializable import Serializable
@@ -6,9 +7,9 @@ from core.Serializable import Serializable
 
 class Classifier(Serializable):
     @abstractmethod
-    def train(self, mails: [Mail] = None, labels: [int] = None):
+    def train(self, mails: List[Mail] = None, labels: List[int] = None):
         pass
 
     @abstractmethod
-    def classify(self, mails: [Mail]) -> [float]:
+    def classify(self, mails: List[Mail]) -> List[float]:
         pass

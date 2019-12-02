@@ -1,4 +1,7 @@
+from typing import List
+
 from classification.Classifier import Classifier
+from classification.DelegatableClassifier import DelegatableClassifier
 from core.Mail import Mail
 from core.Serializable import T
 
@@ -8,12 +11,12 @@ class DelegatingClassifier(Classifier):
         self.weights: [float] = weights
         self.delegates: [Classifier] = delegates
 
-    def train(self, mails: [Mail] = None, labels: [int] = None):
+    def train(self, mails: List[Mail] = None, labels: List[int] = None):
         for delegate in self.delegates:
             delegate.train(mails, labels)
 
-    def classify(self, mails: [Mail]) -> [float]:
-        scores = [0 for val in range(len(mails))]
+    def classify(self, mails: List[Mail]) -> List[float]:
+        scores = [float(0) for val in range(len(mails))]
         for delegate, weight in zip(self.delegates, self.weights):
             # could this happen more efficient?
             scores = [
@@ -31,8 +34,8 @@ class DelegatingClassifier(Classifier):
         for delegate in self.delegates:
             delegate.serialize(base_folder)
 
-    def deserialize(self, sub_folder: str = None) -> T:
+    def deserialize(self, sub_folder: str = None):
         base_folder = self.resolve_folder(sub_folder)
-        new_delegates = []
+        new_delegates: List[DelegatableClassifier] = []
         for delegate in self.delegates:
             new_delegates = [*new_delegates, delegate.deserialize(base_folder)]
