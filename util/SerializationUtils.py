@@ -2,7 +2,7 @@ import json
 import os
 from typing import TypeVar, Optional
 
-DATA_DIR = os.path.dirname(__file__) + "/../data/"
+DATA_DIR = os.path.dirname(__file__) + "\..\data\\"
 
 T = TypeVar('T')
 

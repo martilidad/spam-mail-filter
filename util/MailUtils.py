@@ -13,8 +13,8 @@ def strings_to_mails(strings: [str]) -> [Mail]:
 
 def string_to_mail(string) -> Mail:
     if type(string) is bytes:
-        return Mail(string.decode('UTF-8', errors='replace'), '')
-    return Mail(string, '')
+        return Mail(string.decode('UTF-8', errors='replace'), '', '')
+    return Mail(string, '', '')
 
 
 def messages_to_mails(messages: [Message]) -> [Mail]:
@@ -26,7 +26,8 @@ def message_to_mail(message):
     if type(raw_text) is bytes:
         raw_text = raw_text.decode('UTF-8', errors='replace')
     subject = opt_header_to_str(message, 'Subject')
-    return Mail(raw_text, subject)
+    sender = opt_header_to_str(message, 'from')
+    return Mail(raw_text, subject, sender)
 
 
 def opt_header_to_str(message: Message, header) -> str:

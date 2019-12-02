@@ -5,6 +5,7 @@ from classification.Classifier import Classifier
 from classification.DelegatableClassifier import DelegatableClassifier
 from classification.DelegatingClassifier import DelegatingClassifier
 from classification.bayes.BayesClassifier import BayesClassifier
+from classification.blacklist.BlacklistClassifier import BlacklistClassifier
 from classification.urlcheck.URLClassifier import URLClassifier
 from core.MailAttributes import MailAttributes
 
@@ -12,7 +13,7 @@ from core.MailAttributes import MailAttributes
 class ClassificationConfig:
     """
     ommited config keys will be seen as 0
-    sum of weights must be 1
+    sum of weights must be at least 1
     """
 
     INTERNAL_CONFIG: dict = {
@@ -32,6 +33,12 @@ class ClassificationConfig:
             "Classifier": URLClassifier,
             "Attribute": MailAttributes.BODY,
             "Config-Name": "url_weight",
+            "Weight": 0
+        },
+        "From": {
+            "Classifier": BlacklistClassifier,
+            "Attribute": MailAttributes.FROM,
+            "Config-Name": "from_weight",
             "Weight": 0
         }
     }

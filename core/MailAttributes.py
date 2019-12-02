@@ -7,3 +7,4 @@ from core.Mail import Mail
 class MailAttributes(Enum):
     SUBJECT = Mail.get_subject
     BODY = Mail.get_raw_text
+    FROM = Mail.get_from
