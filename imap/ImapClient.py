@@ -23,15 +23,6 @@ class ImapClient(MailClient):
         result, uids = self.conn.uid('SEARCH', None, 'All')
         return uids[0].split()
 
-    def get_mail_for_uid(self, uid: bytes) -> email.message.Message:
-        result, data = self.conn.uid('FETCH', uid, '(RFC822)')
-        body = data[0][1]
-        if isinstance(body, bytes):
-            mail = email.message_from_bytes(body)
-        else:
-            mail = email.message_from_string(body)
-        return mail
-
     def get_mails_for_uids(self, uids: List[bytes]) -> List[email.message.Message]:
         comma_separated_uids = ','.join([uid.decode() for uid in uids])
         result, data = self.conn.uid('FETCH', comma_separated_uids, '(RFC822)')
@@ -47,15 +38,6 @@ class ImapClient(MailClient):
                 mail = email.message_from_string(body)
             mails.append(mail)
         return mails
-
-    def get_raw_mail_for_uid(self, uid: bytes) -> str:
-        result, data = self.conn.uid('FETCH', uid, '(RFC822)')
-        body = data[0][1]
-        if isinstance(body, bytes):
-            mail = body.decode()
-        else:
-            mail = body
-        return mail
 
     def move_mail(self, uid: bytes, destination: str):
         result = self.conn.uid('COPY', uid, destination)

@@ -25,11 +25,7 @@ class MailClient:
         pass
 
     @abstractmethod
-    def get_mail_for_uid(self, uid: bytes) -> Message:
-        pass
-
-    @abstractmethod
-    def get_raw_mail_for_uid(self, uid: bytes) -> str:
+    def get_mails_for_uids(self, uids: List[bytes]) -> List[Message]:
         pass
 
     @abstractmethod
