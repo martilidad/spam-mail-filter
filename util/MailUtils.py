@@ -23,9 +23,7 @@ def messages_to_mails(messages: List[Message]) -> List[Mail]:
 
 
 def message_to_mail(message):
-    raw_text = select_payload(message)
-    if type(raw_text) is bytes:
-        raw_text = raw_text.decode('UTF-8', errors='replace')
+    raw_text = unwrap_payload(message)
     subject = opt_header_to_str(message, 'Subject')
     sender = opt_header_to_str(message, 'from')
     return Mail(raw_text, subject, sender)
@@ -38,31 +36,16 @@ def opt_header_to_str(message: Message, header) -> str:
     return ''
 
 
-def payload_list(message) -> List[Message]:
-    """
-    This function unwraps all message parts for multipart mails into one list of messages
-    :param message:
-    :return: message list. with flattened hierarchy
-    """
-    payloads = message.get_payload()
-    if type(payloads) is list:
-        result: List[Message] = []
-        for payload in payloads:
-            otherList = payload_list(payload)
-            result = [*result, *otherList]
-        return result
+def unwrap_payload(message: Message) -> str:
+    if message.is_multipart():
+        parts = message.get_payload()
+        res = ""
+        for part in parts:
+            res += unwrap_payload(part)
+            res += "\n\n"
+        return res
     else:
-        return [message]
-
-
-def select_payload(message: Message) -> str:
-    if type(message.get_payload()) is list:
-        messages = payload_list(message)
-        for msg in messages:
-            if msg.get_content_type() == "text/plain":
-                return msg.get_payload(decode=True)
-        for msg in messages:
-            if msg.get_content_type() == "text/html":
-                return msg.get_payload(decode=True)
-        return messages[0].get_payload(decode=True)
-    return message.get_payload(decode=True)
+        payload = message.get_payload(decode=True)
+        if type(payload) is bytes:
+            payload = payload.decode(errors='replace')
+        return payload
