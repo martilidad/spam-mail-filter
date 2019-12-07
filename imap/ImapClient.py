@@ -1,5 +1,6 @@
 import email  # https://docs.python.org/3/library/email.html
 import imaplib  # https://docs.python.org/3/library/imaplib.html
+import re
 from typing import List
 
 from core.MailClient import MailClient
@@ -18,6 +19,17 @@ class ImapClient(MailClient):
 
     def select_mailbox(self, mailbox: str):
         self.conn.select(mailbox)
+
+    def get_mailbox_identifier(self, mailbox: str):
+        _, response = self.conn.status(mailbox, '(UIDVALIDITY)')
+        body = response[0].decode()
+        match = re.search('UIDVALIDITY ([0-9]+)', body)
+        if match is not None:
+            uidvalidity = int(match.groups()[0])
+        else:
+            uidvalidity = 0
+
+        return uidvalidity
 
     def get_all_uids(self) -> List[bytes]:
         result, uids = self.conn.uid('SEARCH', None, 'All')

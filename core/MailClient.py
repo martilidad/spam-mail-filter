@@ -21,6 +21,10 @@ class MailClient:
         pass
 
     @abstractmethod
+    def get_mailbox_identifier(self, mailbox: str) -> int:
+        pass
+
+    @abstractmethod
     def get_all_uids(self) -> List[bytes]:
         pass
 
