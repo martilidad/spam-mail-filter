@@ -74,7 +74,8 @@ class SpamFilter:
         batch_size = self.config.batch_size
 
         imap.select_mailbox(self.config.train_spam_mailbox)
-        spam_mb_id = str(imap.get_mailbox_identifier(self.config.train_spam_mailbox))
+        spam_mb_id = str(
+            imap.get_mailbox_identifier(self.config.train_spam_mailbox))
         spam_uids = imap.get_all_uids()[0:self.config.max_train_mails]
         spam_texts = []
         for i in range(0, len(spam_uids), batch_size):
@@ -83,7 +84,8 @@ class SpamFilter:
         labels = [1] * len(spam_texts)
 
         imap.select_mailbox(self.config.train_ham_mailbox)
-        ham_mb_id = str(imap.get_mailbox_identifier(self.config.train_ham_mailbox))
+        ham_mb_id = str(
+            imap.get_mailbox_identifier(self.config.train_ham_mailbox))
         ham_uids = imap.get_all_uids()[0:self.config.max_train_mails]
         ham_texts = []
         for i in range(0, len(ham_uids), batch_size):
@@ -111,7 +113,9 @@ class SpamFilter:
 
         keys = set(tracked_uids).union(trained_uids)
         no = []
-        merged = dict((k, list(set(tracked_uids.get(k, no) + trained_uids.get(k, no)))) for k in keys)
+        merged = dict(
+            (k, list(set(tracked_uids.get(k, no) + trained_uids.get(k, no))))
+            for k in keys)
         for value in merged.values():
             value.sort()
 

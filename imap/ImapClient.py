@@ -35,7 +35,8 @@ class ImapClient(MailClient):
         result, uids = self.conn.uid('SEARCH', None, 'All')
         return uids[0].split()
 
-    def get_mails_for_uids(self, uids: List[bytes]) -> List[email.message.Message]:
+    def get_mails_for_uids(self,
+                           uids: List[bytes]) -> List[email.message.Message]:
         comma_separated_uids = ','.join([uid.decode() for uid in uids])
         result, data = self.conn.uid('FETCH', comma_separated_uids, '(RFC822)')
         mails: List[email.message.Message] = []
