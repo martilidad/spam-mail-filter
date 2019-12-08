@@ -10,7 +10,7 @@ from core.EnronDataset import EnronDataset
 from core.MailChecker import MailChecker
 from core.StartMode import StartMode
 from imap.ImapClient import ImapClient
-from util import MailUtils
+from util import MailUtils, SerializationUtils
 
 
 class SpamFilter:
@@ -74,6 +74,7 @@ class SpamFilter:
         batch_size = self.config.batch_size
 
         imap.select_mailbox(self.config.train_spam_mailbox)
+        spam_mb_id = str(imap.get_mailbox_identifier(self.config.train_spam_mailbox))
         spam_uids = imap.get_all_uids()[0:self.config.max_train_mails]
         spam_texts = []
         for i in range(0, len(spam_uids), batch_size):
@@ -82,6 +83,7 @@ class SpamFilter:
         labels = [1] * len(spam_texts)
 
         imap.select_mailbox(self.config.train_ham_mailbox)
+        ham_mb_id = str(imap.get_mailbox_identifier(self.config.train_ham_mailbox))
         ham_uids = imap.get_all_uids()[0:self.config.max_train_mails]
         ham_texts = []
         for i in range(0, len(ham_uids), batch_size):
@@ -89,6 +91,28 @@ class SpamFilter:
             ham_texts += imap.get_mails_for_uids(uids)
         labels = labels + [0] * len(ham_texts)
 
+        if self.config.track_train_mails:
+            trained_uids = {
+                ham_mb_id: [int(u) for u in ham_uids],
+                spam_mb_id: [int(u) for u in spam_uids]
+            }
+            self.__add_uids_to_trackfile(trained_uids)
+
         imap.logout()
         return MailUtils.messages_to_mails(spam_texts +
                                            ham_texts), np.array(labels)
+
+    def __add_uids_to_trackfile(self, trained_uids):
+        tracked_uids = SerializationUtils.deserialize(self.config.trackfile)
+        if tracked_uids is None:
+            tracked_uids = {}
+        elif type(tracked_uids) is not dict:
+            tracked_uids = {}
+
+        keys = set(tracked_uids).union(trained_uids)
+        no = []
+        merged = dict((k, list(set(tracked_uids.get(k, no) + trained_uids.get(k, no)))) for k in keys)
+        for value in merged.values():
+            value.sort()
+
+        SerializationUtils.serialize(merged, self.config.trackfile)

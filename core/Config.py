@@ -47,6 +47,7 @@ class Config:
         self.dryrun = process_config.getboolean('dryrun', False)
         self.usermail_training = process_config.getboolean(
             'usermail_training', False)
+        self.track_train_mails = process_config.getboolean('track_train_mails', True)
         self.max_train_mails = process_config.getint('max_train_mails', 500)
         self.batch_size = process_config.getint('batch_size', 100)
 
