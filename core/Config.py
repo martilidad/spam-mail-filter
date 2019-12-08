@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+from argparse import ArgumentParser
 from configparser import ConfigParser, RawConfigParser
 
 from classification.ClassificationConfig import ClassificationConfig
@@ -8,38 +9,63 @@ from core.CheckMode import CheckMode
 from core.StartMode import StartMode
 
 
+class ConfigSection:
+
+    def __init__(self, name: str, argParser, configParser):
+        self.argParser = argParser
+        self.arg_group = argParser.add_argument_group(name)
+        self.config_group = configParser[name]
+
+    def parse(self, name, default=None, type: type=str):
+        value = default
+        if type is str:
+            value = self.config_group.get(name, default)
+        elif type is int:
+            value = self.config_group.getint(name, default)
+        elif type is bool:
+            value = self.config_group.getboolean(name, default)
+        elif type is float:
+            value = self.config_group.getfloat(name, default)
+        else:
+            raise ValueError('unkown config-key type' + str(type))
+        self.arg_group.add_argument('--'+name, type=type, default=value)
+        # return default value for now might get updated later
+        return value
+
+
 class Config:
     def __init__(self):
-        parser = ConfigParser()
+        configParser = ConfigParser()
+        argParser = ArgumentParser()
         path = os.path.dirname(__file__) + "/../spamfilter.ini"
-        parser.read(path)
+        configParser.read(path)
 
-        mail_config = parser['mail']
-        self.username = mail_config.get('username', '')
-        self.password = mail_config.get('password', '')
-        self.host = mail_config.get('host', 'localhost')
-        self.port = mail_config.getint('port', 993)
+        mail_config = ConfigSection('mail', argParser, configParser)
+        self.username = mail_config.parse('username', '')
+        self.password = mail_config.parse('password', '')
+        self.host = mail_config.parse('host', 'localhost')
+        self.port = mail_config.parse('port', 993, int)
 
-        spam_config = parser['spam']
-        self.check_interval = spam_config.getfloat('check_interval', 15)
-        self.score_threshold = spam_config.getfloat('score_threshold', 0.5)
+        spam_config = ConfigSection('spam', argParser, configParser)
+        self.check_interval = spam_config.parse('check_interval', 15, float)
+        self.score_threshold = spam_config.parse('score_threshold', 0.5, float)
 
-        file_config = parser['file']
-        self.trackfile = file_config.get('trackfile_name', 'trackfile.trc')
+        file_config = ConfigSection('file', argParser, configParser)
+        self.trackfile = file_config.parse('trackfile_name', 'trackfile.trc')
 
-        folder_config = parser['folder']
-        self.inbox = folder_config.get('inbox', 'INBOX')
-        self.spam_folder = folder_config.get('spam_folder')
-        self.train_ham_mailbox = folder_config.get('train_ham_mailbox')
-        self.train_spam_mailbox = folder_config.get('train_spam_mailbox')
+        folder_config = ConfigSection('folder', argParser, configParser)
+        self.inbox = folder_config.parse('inbox', 'INBOX')
+        self.spam_folder = folder_config.parse('spam_folder')
+        self.train_ham_mailbox = folder_config.parse('train_ham_mailbox')
+        self.train_spam_mailbox = folder_config.parse('train_spam_mailbox')
 
-        self.google_api_token = parser['external'].get('google_api_token',
-                                                       None)
+        external_config = ConfigSection('external', argParser, configParser)
+        self.google_api_token = external_config.parse('google_api_token')
 
         self.classification_config = ClassificationConfig(
-            parser['classification'], self)
+            configParser['classification'], self)
 
-        process_config = parser['process']
+        process_config = configParser['process']
         self.configure_logging(process_config)
         self.start_mode = StartMode[process_config.get('start_mode',
                                                        'training')]
@@ -50,6 +76,7 @@ class Config:
         self.track_train_mails = process_config.getboolean('track_train_mails', True)
         self.max_train_mails = process_config.getint('max_train_mails', 500)
         self.batch_size = process_config.getint('batch_size', 100)
+        self.__dict__.update(argParser.parse_args().__dict__)
 
     @staticmethod
     def configure_logging(process_config: RawConfigParser):
