@@ -24,19 +24,19 @@ class MailChecker(threading.Thread):
         tracked_uids = SerializationUtils.deserialize(
             self.config.trackfile)
         if tracked_uids is None:
-            tracked_uids = {mbid: []}
+            tracked_uids = {}
         elif type(tracked_uids) is not dict:
-            tracked_uids = {mbid: []}
-        elif mbid not in tracked_uids:
-            tracked_uids[mbid] = []
-        new_uids = [u for u in uids if int(u) not in tracked_uids[mbid]]
+            tracked_uids = {}
+
+        new_uids = [u for u in uids if int(u) not in tracked_uids.get(mbid, [])]
         return new_uids, tracked_uids
 
     def __store_new_checked_uids(self, mbid: str, tracked_uids: dict,
                                 new_uids: List[bytes]):
         new_checked_uids_for_mailbox = list(
-            set(tracked_uids[mbid] + [int(u) for u in new_uids]))
-        tracked_uids[mbid] = new_checked_uids_for_mailbox
+            set(tracked_uids.get(mbid, []) + [int(u) for u in new_uids]))
+        new_checked_uids_for_mailbox.sort()
+        tracked_uids.update({mbid: new_checked_uids_for_mailbox})
         SerializationUtils.serialize(tracked_uids, self.config.trackfile)
 
     def __mail_check(self):
