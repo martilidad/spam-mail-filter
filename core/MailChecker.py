@@ -43,7 +43,7 @@ class MailChecker(threading.Thread):
 
     def __mail_check(self):
         logging.info("checking mails")
-        imap = ImapClient(self.config.host, self.config.port)
+        imap = ImapClient(self.config.host, self.config.port, self.config.ssl)
         imap.login(self.config.username, self.config.password)
         imap.select_mailbox(self.config.inbox)
         mbid = str(imap.get_mailbox_identifier(self.config.inbox))

@@ -23,6 +23,8 @@ class ConfigSection:
             value = self.config_group.getint(name, default)
         elif type is bool:
             value = self.config_group.getboolean(name, default)
+            # arparser normally would pass x to bool(x) this results in confusing behaviour
+            type = lambda x: x.lower() not in ("no", "false", "f", "0")
         elif type is float:
             value = self.config_group.getfloat(name, default)
         elif callable(type):
@@ -50,6 +52,7 @@ class Config:
         self.password = mail_config.parse('password', '')
         self.host = mail_config.parse('host', 'localhost')
         self.port = mail_config.parse('port', 993, int)
+        self.ssl = mail_config.parse('ssl', True, bool)
 
         spam_config = ConfigSection('spam', argParser, configParser)
         self.check_interval = spam_config.parse('check_interval', 15, float)

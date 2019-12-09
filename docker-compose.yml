@@ -1,0 +1,18 @@
+# for davmail set config(spamfilter.ini) values:
+# host = localhost
+# port = 1143
+# ssl = False
+#
+# set davmail.url in davmail.properties
+# and do docker-compose
+version: "3.7"
+services:
+  davmail:
+    image: jberrenberg/davmail
+    volumes:
+      # local properties : container properties
+      - "./davmail.properties:/etc/davmail/davmail.properties"
+    ports:
+      - "1143:1143"
+# smtp port if needed
+#      - "1025:1025"

@@ -2,15 +2,20 @@ import email  # https://docs.python.org/3/library/email.html
 import imaplib  # https://docs.python.org/3/library/imaplib.html
 import logging
 import re
+import socket
 from typing import List
 
 from core.MailClient import MailClient
 
 
 class ImapClient(MailClient):
-    def __init__(self, host: str, port: int):
-        super().__init__(host, port)
-        self.conn = imaplib.IMAP4_SSL(host, port)
+    def __init__(self, host: str, port: int, ssl: bool):
+        super().__init__(host, port, ssl)
+        socket.setdefaulttimeout(2)
+        if ssl:
+            self.conn = imaplib.IMAP4_SSL(host, port)
+        else:
+            self.conn = imaplib.IMAP4(host, port)
 
     def login(self, user: str, password: str):
         self.conn.login(user, password)

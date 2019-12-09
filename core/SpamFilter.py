@@ -52,7 +52,7 @@ class SpamFilter:
             classifier = self.config.classification_config.load_classifier(
                 train_mails, train_labels)
         elif start_mode is StartMode.LIST_MAIL_FOLDERS:
-            imap = ImapClient(self.config.host, self.config.port)
+            imap = ImapClient(self.config.host, self.config.port, self.config.ssl)
             imap.login(self.config.username, self.config.password)
             imap.print_valid_folders()
             exit(0)
@@ -71,7 +71,7 @@ class SpamFilter:
 
     def __get_usermail_data(self):
         # TODO trained mails should be added to trackfile
-        imap = ImapClient(self.config.host, self.config.port)
+        imap = ImapClient(self.config.host, self.config.port, self.config.ssl)
         imap.login(self.config.username, self.config.password)
         batch_size = self.config.batch_size
 

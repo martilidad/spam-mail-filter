@@ -5,7 +5,7 @@ from typing import List
 
 class MailClient:
     @abstractmethod
-    def __init__(self, host: str, port: int):
+    def __init__(self, host: str, port: int, ssl: bool):
         pass
 
     @abstractmethod
