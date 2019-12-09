@@ -48,12 +48,14 @@ class SpamFilter:
             return self.config.classification_config.load_classifier()
         elif start_mode is StartMode.USERMAIL_TRAINING:
             logging.debug("Starting to load training data from mail server.")
-            if self.config.train_ham_mailbox is None or self.config.train_spam_mailbox is None:
-                raise ValueError(
-                    "Need configured training mailboxes for USERMAIL_TRAINING")
             train_mails, train_labels = self.__get_usermail_data()
             classifier = self.config.classification_config.load_classifier(
                 train_mails, train_labels)
+        elif start_mode is StartMode.LIST_MAIL_FOLDERS:
+            imap = ImapClient(self.config.host, self.config.port)
+            imap.login(self.config.username, self.config.password)
+            imap.print_valid_folders()
+            exit(0)
         else:
             raise ValueError("Invalid value for start mode")
         logging.debug("Starting training.")

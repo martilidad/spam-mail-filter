@@ -1,4 +1,3 @@
-from configparser import RawConfigParser
 from typing import List
 
 from classification.Classifier import Classifier
@@ -43,12 +42,20 @@ class ClassificationConfig:
         }
     }
 
-    def __init__(self, config_section: RawConfigParser, config):
+    def __init__(self, config_section: 'ConfigSection', config: 'Config'):
         self.config = config
+        for key in self.INTERNAL_CONFIG.keys():
+            subconfig: dict = self.INTERNAL_CONFIG[key]
+            subconfig["Weight"] = config_section.parse(
+                subconfig["Config-Name"], '0', float,
+                'The Weight for ' + subconfig['Classifier'].__name__ +
+                ' with target attribute ' + subconfig['Attribute'].name)
+
+    def reload_args(self):
         sum = float(0)
         for key in self.INTERNAL_CONFIG.keys():
             subconfig: dict = self.INTERNAL_CONFIG[key]
-            weight = config_section.getfloat(subconfig["Config-Name"], '0')
+            weight = self.config[subconfig['Config-Name']]
             subconfig["Weight"] = weight
             sum += weight
         if sum < 1:
@@ -58,6 +65,7 @@ class ClassificationConfig:
 
     def load_classifier(self, train_mails=None,
                         train_labels=None) -> Classifier:
+        self.reload_args()
         delegates: List[DelegatableClassifier] = []
         weights: List[float] = []
         for key in self.INTERNAL_CONFIG.keys():

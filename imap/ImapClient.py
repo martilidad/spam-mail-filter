@@ -1,5 +1,6 @@
 import email  # https://docs.python.org/3/library/email.html
 import imaplib  # https://docs.python.org/3/library/imaplib.html
+import logging
 import re
 from typing import List
 
@@ -18,7 +19,20 @@ class ImapClient(MailClient):
         self.conn.logout()
 
     def select_mailbox(self, mailbox: str):
-        self.conn.select(mailbox)
+        status, _ = self.conn.select(mailbox)
+        if status != 'OK':
+            logging.fatal('Unable to select mailbox: ' + mailbox)
+            self.print_valid_folders()
+            exit(-1)
+
+    def print_valid_folders(self):
+        list: List[bytes]
+        status, list = self.conn.list()
+        print("Valid folders:")
+        for response in list:
+            if response.find(b'Noselect') == -1:
+                folder = response.split(b'"')[-2].decode()
+                print(folder)
 
     def get_mailbox_identifier(self, mailbox: str):
         _, response = self.conn.status(mailbox, '(UIDVALIDITY)')
