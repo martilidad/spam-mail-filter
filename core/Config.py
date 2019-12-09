@@ -59,7 +59,8 @@ class Config:
         file_config = ConfigSection('file', argParser, configParser)
         self.trackfile = file_config.parse('trackfile_name', 'trackfile.trc')
 
-        folder_config = ConfigSection('folder', argParser, configParser)
+        folder_config = ConfigSection('folder', argParser, configParser,
+                                      'Valid folders can be displayed with --start_mode LIST_MAIL_FOLDERS')
         self.inbox = folder_config.parse('inbox', 'INBOX')
         self.spam_folder = folder_config.parse('spam_folder')
         self.train_ham_mailbox = folder_config.parse('train_ham_mailbox')
