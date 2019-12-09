@@ -31,10 +31,9 @@ class ImapClient(MailClient):
             exit(-1)
 
     def print_valid_folders(self):
-        list: List[bytes]
-        status, list = self.conn.list()
+        status, lst = self.conn.list()
         print("Valid folders:")
-        for response in list:
+        for response in lst:
             if response.find(b'Noselect') == -1:
                 folder = response.split(b'"')[-2].decode()
                 print(folder)

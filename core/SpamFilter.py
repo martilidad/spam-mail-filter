@@ -55,6 +55,7 @@ class SpamFilter:
             imap = ImapClient(self.config.host, self.config.port, self.config.ssl)
             imap.login(self.config.username, self.config.password)
             imap.print_valid_folders()
+            imap.logout()
             exit(0)
         else:
             raise ValueError("Invalid value for start mode")
