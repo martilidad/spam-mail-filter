@@ -3,6 +3,7 @@ import logging
 import os
 from argparse import ArgumentParser
 from configparser import ConfigParser
+from enum import Enum
 
 from classification.ClassificationConfig import ClassificationConfig
 from core.CheckMode import CheckMode
@@ -10,10 +11,9 @@ from core.StartMode import StartMode
 
 
 class ConfigSection:
-
-    def __init__(self, name: str, argParser, configParser):
+    def __init__(self, name: str, argParser, configParser, *args, **kwargs):
         self.argParser = argParser
-        self.arg_group = argParser.add_argument_group(name)
+        self.arg_group = argParser.add_argument_group(name, *args, **kwargs)
         self.config_group = configParser[name]
 
     def parse(self, name, default=None, type: type = str, description=None):
@@ -31,7 +31,10 @@ class ConfigSection:
             value = type(self.config_group.get(name, default))
         else:
             raise ValueError('unkown config-key type' + str(type))
-        self.arg_group.add_argument('--' + name, type=type, default=value, help=description)
+        self.arg_group.add_argument('--' + name,
+                                    type=type,
+                                    default=value,
+                                    help=description)
         # return default value for now might get updated later
         return value
 
@@ -66,23 +69,58 @@ class Config:
         self.google_api_token = external_config.parse('google_api_token')
 
         self.classification_config = ClassificationConfig(
-            ConfigSection('classification', argParser, configParser), self)
-
+            ConfigSection(
+                'classification',
+                argParser,
+                configParser,
+                description=
+                'Sum of weights must be > 1. Classifiers with weight 0 will not be initialized'
+            ), self)
         process_config = ConfigSection('process', argParser, configParser)
         self.console_log_level = process_config.parse(
-            'console_log_level', 'INFO', type=lambda x: logging._nameToLevel[x])
-        self.create_logfiles = process_config.parse('create_logfiles', 'False', bool)
-        self.start_mode = process_config.parse('start_mode',
-                                               'training', type=lambda x: StartMode[x])
-        self.check_mode = process_config.parse('check_mode', 'normal', type=lambda x: CheckMode[x])
+            'console_log_level',
+            'INFO',
+            type=lambda x: logging._nameToLevel[x],
+            description=self.list_to_help(logging._nameToLevel.keys()))
+        self.create_logfiles = process_config.parse('create_logfiles', 'False',
+                                                    bool)
+        self.start_mode = process_config.parse(
+            'start_mode',
+            'training',
+            type=lambda x: StartMode[x],
+            description=self.enum_to_help(StartMode))
+        self.check_mode = process_config.parse(
+            'check_mode',
+            'normal',
+            type=lambda x: CheckMode[x],
+            description=self.enum_to_help(CheckMode))
         self.dryrun = process_config.parse('dryrun', False, bool)
-        self.usermail_training = process_config.parse(
-            'usermail_training', False, bool)
-        self.track_train_mails = process_config.parse('track_train_mails', True, bool)
-        self.max_train_mails = process_config.parse('max_train_mails', 500, int)
+        self.usermail_training = process_config.parse('usermail_training',
+                                                      False, bool)
+        self.track_train_mails = process_config.parse('track_train_mails',
+                                                      True, bool)
+        self.max_train_mails = process_config.parse('max_train_mails', 500,
+                                                    int)
         self.batch_size = process_config.parse('batch_size', 100, int)
         self.__dict__.update(argParser.parse_args().__dict__)
+        # has to be done after parse_args()
         self.configure_logging()
+
+    @staticmethod
+    def list_to_help(list):
+        result = 'Valid Values: '
+        for item in list:
+            itemStr: str
+            if type(item) is Enum:
+                itemStr = item.name
+            else:
+                itemStr = str(item)
+            result += itemStr + ' '
+        return result
+
+    @staticmethod
+    def enum_to_help(enum):
+        return Config.list_to_help([val.name for val in list(enum)])
 
     def configure_logging(self):
         if self.create_logfiles:

@@ -6,7 +6,6 @@ from classification.DelegatingClassifier import DelegatingClassifier
 from classification.bayes.BayesClassifier import BayesClassifier
 from classification.blacklist.BlacklistClassifier import BlacklistClassifier
 from classification.urlcheck.URLClassifier import URLClassifier
-from core.Config import ConfigSection
 from core.MailAttributes import MailAttributes
 
 
@@ -43,14 +42,14 @@ class ClassificationConfig:
         }
     }
 
-    def __init__(self, config_section: ConfigSection, config):
+    def __init__(self, config_section: 'ConfigSection', config: 'Config'):
         self.config = config
         for key in self.INTERNAL_CONFIG.keys():
             subconfig: dict = self.INTERNAL_CONFIG[key]
-            weight = config_section.parse(subconfig["Config-Name"], '0', float,
-                                          'The Weight for ' + subconfig['Classifier'] + ' with targetattribute ' +
-                                          subconfig['Attribute'])
-            subconfig["Weight"] = weight
+            subconfig["Weight"] = config_section.parse(
+                subconfig["Config-Name"], '0', float,
+                'The Weight for ' + subconfig['Classifier'].__name__ +
+                ' with target attribute ' + subconfig['Attribute'].name)
 
     def reload_args(self):
         sum = float(0)
