@@ -3,7 +3,6 @@ import logging
 import os
 from argparse import ArgumentParser
 from configparser import ConfigParser
-from enum import Enum
 
 from classification.ClassificationConfig import ClassificationConfig
 from core.CheckMode import CheckMode
@@ -35,7 +34,7 @@ class ConfigSection:
                                     type=type,
                                     default=value,
                                     help=description)
-        # return default value for now might get updated later
+        # return default/config value for now. might get updated later
         return value
 
 
@@ -111,12 +110,7 @@ class Config:
     def list_to_help(list):
         result = 'Valid Values: '
         for item in list:
-            itemStr: str
-            if type(item) is Enum:
-                itemStr = item.name
-            else:
-                itemStr = str(item)
-            result += itemStr + ' '
+            result += str(item) + ' '
         return result
 
     @staticmethod
