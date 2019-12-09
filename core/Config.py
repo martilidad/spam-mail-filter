@@ -2,7 +2,7 @@ import datetime
 import logging
 import os
 from argparse import ArgumentParser
-from configparser import ConfigParser, RawConfigParser
+from configparser import ConfigParser
 
 from classification.ClassificationConfig import ClassificationConfig
 from core.CheckMode import CheckMode
@@ -16,7 +16,7 @@ class ConfigSection:
         self.arg_group = argParser.add_argument_group(name)
         self.config_group = configParser[name]
 
-    def parse(self, name, default=None, type: type=str):
+    def parse(self, name, default=None, type: type = str, description=None):
         value = default
         if type is str:
             value = self.config_group.get(name, default)
@@ -26,9 +26,12 @@ class ConfigSection:
             value = self.config_group.getboolean(name, default)
         elif type is float:
             value = self.config_group.getfloat(name, default)
+        elif callable(type):
+            # type is a custom parsing function/lambda
+            value = type(self.config_group.get(name, default))
         else:
             raise ValueError('unkown config-key type' + str(type))
-        self.arg_group.add_argument('--'+name, type=type, default=value)
+        self.arg_group.add_argument('--' + name, type=type, default=value, help=description)
         # return default value for now might get updated later
         return value
 
@@ -63,24 +66,26 @@ class Config:
         self.google_api_token = external_config.parse('google_api_token')
 
         self.classification_config = ClassificationConfig(
-            configParser['classification'], self)
+            ConfigSection('classification', argParser, configParser), self)
 
-        process_config = configParser['process']
-        self.configure_logging(process_config)
-        self.start_mode = StartMode[process_config.get('start_mode',
-                                                       'training')]
-        self.check_mode = CheckMode[process_config.get('check_mode', 'normal')]
-        self.dryrun = process_config.getboolean('dryrun', False)
-        self.usermail_training = process_config.getboolean(
-            'usermail_training', False)
-        self.track_train_mails = process_config.getboolean('track_train_mails', True)
-        self.max_train_mails = process_config.getint('max_train_mails', 500)
-        self.batch_size = process_config.getint('batch_size', 100)
+        process_config = ConfigSection('process', argParser, configParser)
+        self.console_log_level = process_config.parse(
+            'console_log_level', 'INFO', type=lambda x: logging._nameToLevel[x])
+        self.create_logfiles = process_config.parse('create_logfiles', 'False', bool)
+        self.start_mode = process_config.parse('start_mode',
+                                               'training', type=lambda x: StartMode[x])
+        self.check_mode = process_config.parse('check_mode', 'normal', type=lambda x: CheckMode[x])
+        self.dryrun = process_config.parse('dryrun', False, bool)
+        self.usermail_training = process_config.parse(
+            'usermail_training', False, bool)
+        self.track_train_mails = process_config.parse('track_train_mails', True, bool)
+        self.max_train_mails = process_config.parse('max_train_mails', 500, int)
+        self.batch_size = process_config.parse('batch_size', 100, int)
         self.__dict__.update(argParser.parse_args().__dict__)
+        self.configure_logging()
 
-    @staticmethod
-    def configure_logging(process_config: RawConfigParser):
-        if process_config.getboolean('create_logfiles', False):
+    def configure_logging(self):
+        if self.create_logfiles:
             logdir = os.path.dirname(__file__) + "/../log/"
             os.makedirs(logdir, exist_ok=True)
             filename = datetime.datetime.now().replace(
@@ -94,9 +99,7 @@ class Config:
                 datefmt='%y-%m-%d %H:%M',
             )
         console = logging.StreamHandler()
-        console_level = logging._nameToLevel[process_config.get(
-            'console_log_level', 'INFO')]
-        console.setLevel(console_level)
+        console.setLevel(self.console_log_level)
         console.setFormatter(
             logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s'))
         logging.getLogger('').addHandler(console)
