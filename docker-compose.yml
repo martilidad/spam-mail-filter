@@ -1,10 +1,6 @@
-# for davmail set config(spamfilter.ini) values:
-# host = localhost
-# port = 1143
-# ssl = False
-#
-# set davmail.url in davmail.properties
-# and do docker-compose
+# This file starts the application in a docker container with davmail
+# to not use davmail change spamfilter command
+# other settings can be directly changed in spamfilter.ini
 version: "3.7"
 services:
   davmail:
@@ -20,6 +16,10 @@ services:
   spamfilter:
     # container defined in dockerfile
     build: .
+    # connect to davmail
+    command: "python __main__.py --ssl false --port 1143 --host davmail"
+    volumes:
+      - "./spamfilter.ini:/spamfilter.ini"
     networks:
       - shared
 networks:
