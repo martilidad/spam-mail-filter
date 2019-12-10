@@ -59,9 +59,6 @@ class Config(MetaContainer):
         self.check_interval = spam_config.parse('check_interval', 15, float)
         self.score_threshold = spam_config.parse('score_threshold', 0.5, float)
 
-        file_config = ConfigSection('file', arg_parser, config_parser)
-        self.trackfile = file_config.parse('trackfile_name', 'trackfile.trc')
-
         folder_config = ConfigSection(
             'folder', arg_parser, config_parser,
             'Valid folders can be displayed with --start_mode LIST_MAIL_FOLDERS'
@@ -101,8 +98,6 @@ class Config(MetaContainer):
             'normal',
             type=lambda x: CheckMode[x],
             description=self.enum_to_help(CheckMode))
-        self.track_train_mails = process_config.parse('track_train_mails',
-                                                      True, bool)
         self.max_train_mails = process_config.parse('max_train_mails', 500,
                                                     int)
         self.batch_size = process_config.parse('batch_size', 100, int)

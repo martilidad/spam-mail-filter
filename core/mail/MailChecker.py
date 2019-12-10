@@ -13,6 +13,7 @@ class MailChecker(threading.Thread):
         self.stopped = threading.Event()
         self.classifier = classifier
         self.config = config
+        self.trackfile_name = "check_trackfile.trc"
 
     def run(self):
         self.__mail_check()
@@ -22,7 +23,7 @@ class MailChecker(threading.Thread):
     def __retrieve_new_uids(
             self, imap, mbid: str) -> Tuple[List[bytes], Dict[str, List[int]]]:
         uids = imap.get_all_uids()
-        tracked_uids = SerializationUtils.deserialize(self.config.trackfile)
+        tracked_uids = SerializationUtils.deserialize(self.trackfile_name)
         if tracked_uids is None:
             tracked_uids = {}
         elif type(tracked_uids) is not dict:
@@ -39,7 +40,7 @@ class MailChecker(threading.Thread):
             set(tracked_uids.get(mbid, []) + [int(u) for u in new_uids]))
         new_checked_uids_for_mailbox.sort()
         tracked_uids.update({mbid: new_checked_uids_for_mailbox})
-        SerializationUtils.serialize(tracked_uids, self.config.trackfile)
+        SerializationUtils.serialize(tracked_uids, self.trackfile_name)
 
     def __mail_check(self):
         logging.info("checking mails")
