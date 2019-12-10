@@ -12,7 +12,18 @@ services:
     volumes:
       # local properties : container properties
       - "./davmail.properties:/etc/davmail/davmail.properties"
-    ports:
-      - "1143:1143"
+    networks:
+      - shared
 # smtp port if needed
+# ports:
 #      - "1025:1025"
+  spamfilter:
+    # container defined in dockerfile
+    build: .
+    networks:
+      - shared
+networks:
+  shared:
+    driver: bridge
+
+
