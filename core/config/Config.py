@@ -124,7 +124,7 @@ class Config(MetaContainer):
 
     def configure_logging(self):
         if self.create_logfiles:
-            logdir = os.path.dirname(__file__) + "/../log/"
+            logdir = os.path.dirname(__file__) + "/../../log/"
             os.makedirs(logdir, exist_ok=True)
             filename = datetime.datetime.now().replace(
                 microsecond=0).isoformat().replace(':', '-') + ".log"
