@@ -21,6 +21,10 @@ class MailClient:
         pass
 
     @abstractmethod
+    def print_valid_folders(self):
+        pass
+
+    @abstractmethod
     def get_mailbox_identifier(self, mailbox: str) -> int:
         pass
 

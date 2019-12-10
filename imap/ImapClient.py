@@ -28,6 +28,7 @@ class ImapClient(MailClient):
         if status != 'OK':
             logging.fatal('Unable to select mailbox: ' + mailbox)
             self.print_valid_folders()
+            self.logout()
             exit(-1)
 
     def print_valid_folders(self):
