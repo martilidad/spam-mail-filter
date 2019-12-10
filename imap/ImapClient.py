@@ -5,7 +5,7 @@ import re
 import socket
 from typing import List
 
-from core.MailClient import MailClient
+from core.mail.MailClient import MailClient
 
 
 class ImapClient(MailClient):

@@ -2,7 +2,7 @@ import logging
 import threading
 from typing import List, Tuple, Dict
 
-from core.CheckMode import CheckMode
+from core.config.CheckMode import CheckMode
 from imap.ImapClient import ImapClient
 from util import MailUtils, SerializationUtils
 

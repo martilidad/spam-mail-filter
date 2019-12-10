@@ -2,7 +2,7 @@ from typing import List
 
 from classification.Classifier import Classifier
 from classification.DelegatableClassifier import DelegatableClassifier
-from core.Mail import Mail
+from core.mail.Mail import Mail
 
 
 class DelegatingClassifier(Classifier):

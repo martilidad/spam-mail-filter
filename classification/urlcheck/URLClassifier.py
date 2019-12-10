@@ -6,9 +6,9 @@ from pysafebrowsing import SafeBrowsing
 from urlextract import URLExtract
 
 from classification.DelegatableClassifier import DelegatableClassifier
-from core.Mail import Mail
-from core.MailAttributes import MailAttributes
-from core.Serializable import Serializable
+from core.mail.Mail import Mail
+from core.mail.MailAttributes import MailAttributes
+from util.Serializable import Serializable
 
 
 class URLClassifier(DelegatableClassifier, Serializable['URLClassifier']):

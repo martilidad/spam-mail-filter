@@ -4,7 +4,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 
 from classification.bayes.BayesClassifier import BayesClassifier
-from core.EnronDataset import EnronDataset
+from core.data.EnronDataset import EnronDataset
 from util import MailUtils
 
 LIPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore"

@@ -1,7 +1,7 @@
 from email.message import Message
 from typing import List
 
-from core.Mail import Mail
+from core.mail.Mail import Mail
 
 
 def mails_to_strings(mails: List[Mail]):

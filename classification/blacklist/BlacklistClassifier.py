@@ -1,8 +1,8 @@
 from typing import List
 
 from classification.DelegatableClassifier import DelegatableClassifier
-from core.Mail import Mail
-from core.MailAttributes import MailAttributes
+from core.mail.Mail import Mail
+from core.mail.MailAttributes import MailAttributes
 from util import SerializationUtils
 
 

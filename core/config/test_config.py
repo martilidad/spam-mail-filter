@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from core.Config import Config
+from core.config.Config import Config
 
 
 class TestConfig(TestCase):

@@ -6,7 +6,7 @@ from classification.DelegatingClassifier import DelegatingClassifier
 from classification.bayes.BayesClassifier import BayesClassifier
 from classification.blacklist.BlacklistClassifier import BlacklistClassifier
 from classification.urlcheck.URLClassifier import URLClassifier
-from core.MailAttributes import MailAttributes
+from core.mail.MailAttributes import MailAttributes
 
 
 class ClassificationConfig:

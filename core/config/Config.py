@@ -5,9 +5,9 @@ from argparse import ArgumentParser
 from configparser import ConfigParser
 
 from classification.ClassificationConfig import ClassificationConfig
-from core.CheckMode import CheckMode
+from core.config.CheckMode import CheckMode
 from util.MetaContainer import MetaContainer
-from core.StartMode import StartMode
+from core.config.StartMode import StartMode
 
 
 class ConfigSection:

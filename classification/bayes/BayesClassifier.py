@@ -10,10 +10,10 @@ from sklearn.naive_bayes import MultinomialNB
 
 from classification.DelegatableClassifier import DelegatableClassifier
 from classification.bayes.OnlineCountVectorizer import OnlineCountVectorizer
-from core.Mail import Mail
-from core.MailAttributes import MailAttributes
-from core.NotTrainedException import NotTrainedException
-from core.Serializable import Serializable
+from core.mail.Mail import Mail
+from core.mail.MailAttributes import MailAttributes
+from classification.NotTrainedException import NotTrainedException
+from util.Serializable import Serializable
 
 
 class BayesClassifier(DelegatableClassifier, Serializable['BayesClassifier']):

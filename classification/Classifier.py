@@ -1,8 +1,8 @@
 from abc import abstractmethod
 from typing import List
 
-from core.Mail import Mail
-from core.Serializable import Serializable
+from core.mail.Mail import Mail
+from util.Serializable import Serializable
 
 
 class Classifier(Serializable):

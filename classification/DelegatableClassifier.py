@@ -2,8 +2,8 @@ from abc import abstractmethod
 from typing import List
 
 from classification.Classifier import Classifier
-from core.Mail import Mail
-from core.MailAttributes import MailAttributes
+from core.mail.Mail import Mail
+from core.mail.MailAttributes import MailAttributes
 
 
 class DelegatableClassifier(Classifier):

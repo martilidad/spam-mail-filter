@@ -4,11 +4,11 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 from classification.Classifier import Classifier
-from core.CheckMode import CheckMode
-from core.Config import Config
-from core.EnronDataset import EnronDataset
-from core.MailChecker import MailChecker
-from core.StartMode import StartMode
+from core.config.CheckMode import CheckMode
+from core.config.Config import Config
+from core.data.EnronDataset import EnronDataset
+from core.mail.MailChecker import MailChecker
+from core.config.StartMode import StartMode
 from imap.ImapClient import ImapClient
 from util import MailUtils, SerializationUtils
 
