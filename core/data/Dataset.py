@@ -11,7 +11,7 @@ class Dataset:
 
     def container_path(self):
         return os.path.abspath(
-            os.path.dirname(__file__) + '/../data/' +
+            os.path.dirname(__file__) + '/../../data/' +
             self.relative_container_path)
 
     def load_files(self):
