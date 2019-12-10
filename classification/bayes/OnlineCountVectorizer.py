@@ -43,5 +43,5 @@ class OnlineCountVectorizer(CountVectorizer):
         Combines two vectorized matrices to one complying to current vocabulary
         """
         m2.resize(m2.shape[0], len(self.vocabulary))
-        m1.resize(m2.shape[0], len(self.vocabulary))
+        m1.resize(m1.shape[0], len(self.vocabulary))
         return sparse.vstack((m1, m2))
