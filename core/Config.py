@@ -6,6 +6,7 @@ from configparser import ConfigParser
 
 from classification.ClassificationConfig import ClassificationConfig
 from core.CheckMode import CheckMode
+from core.MetaContainer import MetaContainer
 from core.StartMode import StartMode
 
 
@@ -40,7 +41,7 @@ class ConfigSection:
         return value
 
 
-class Config:
+class Config(MetaContainer):
     def __init__(self):
         configParser = ConfigParser()
         argParser = ArgumentParser()
