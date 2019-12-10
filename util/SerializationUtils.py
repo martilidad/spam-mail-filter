@@ -1,6 +1,6 @@
 import json
 import os
-from typing import TypeVar, Optional
+from typing import TypeVar, Optional, List, Dict
 
 DATA_DIR = os.path.dirname(__file__) + "\..\data\\"
 
@@ -29,3 +29,21 @@ def deserialize(filename: str) -> Optional[object]:
     except (FileNotFoundError, json.decoder.JSONDecodeError):
         return None
     return obj
+
+
+def add_uids_to_trackfile(trackfile: str, trained_uids: Dict[str, List[int]]):
+    tracked_uids = deserialize(trackfile)
+    if tracked_uids is None:
+        tracked_uids = {}
+    elif type(tracked_uids) is not dict:
+        tracked_uids = {}
+
+    keys = set(tracked_uids).union(trained_uids)
+    no = []
+    merged = dict(
+        (k, list(set(tracked_uids.get(k, no) + trained_uids.get(k, no))))
+        for k in keys)
+    for value in merged.values():
+        value.sort()
+
+    serialize(merged, trackfile)

@@ -100,27 +100,8 @@ class SpamFilter:
             ham_mb_id: [int(u) for u in ham_uids],
             spam_mb_id: [int(u) for u in spam_uids]
         }
-        self.__add_uids_to_trackfile(trained_uids)
+        SerializationUtils.add_uids_to_trackfile("train_trackfile.trc", trained_uids)
 
         imap.logout()
         return MailUtils.messages_to_mails(spam_texts +
                                            ham_texts), np.array(labels)
-
-    @staticmethod
-    def __add_uids_to_trackfile(trained_uids):
-        trackfile_name = "train_trackfile.trc"
-        tracked_uids = SerializationUtils.deserialize(trackfile_name)
-        if tracked_uids is None:
-            tracked_uids = {}
-        elif type(tracked_uids) is not dict:
-            tracked_uids = {}
-
-        keys = set(tracked_uids).union(trained_uids)
-        no = []
-        merged = dict(
-            (k, list(set(tracked_uids.get(k, no) + trained_uids.get(k, no))))
-            for k in keys)
-        for value in merged.values():
-            value.sort()
-
-        SerializationUtils.serialize(merged, trackfile_name)

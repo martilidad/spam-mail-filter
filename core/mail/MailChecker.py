@@ -1,6 +1,5 @@
 import logging
 import threading
-from typing import List, Tuple, Dict
 
 from core.config.CheckMode import CheckMode
 from imap.ImapClient import ImapClient
@@ -20,35 +19,12 @@ class MailChecker(threading.Thread):
         while not self.stopped.wait(self.config.check_interval * 60):
             self.__mail_check()
 
-    def __retrieve_new_uids(
-            self, imap, mbid: str) -> Tuple[List[bytes], Dict[str, List[int]]]:
-        uids = imap.get_all_uids()
-        tracked_uids = SerializationUtils.deserialize(self.trackfile_name)
-        if tracked_uids is None:
-            tracked_uids = {}
-        elif type(tracked_uids) is not dict:
-            tracked_uids = {}
-
-        new_uids = [
-            u for u in uids if int(u) not in tracked_uids.get(mbid, [])
-        ]
-        return new_uids, tracked_uids
-
-    def __store_new_checked_uids(self, mbid: str, tracked_uids: dict,
-                                 new_uids: List[bytes]):
-        new_checked_uids_for_mailbox = list(
-            set(tracked_uids.get(mbid, []) + [int(u) for u in new_uids]))
-        new_checked_uids_for_mailbox.sort()
-        tracked_uids.update({mbid: new_checked_uids_for_mailbox})
-        SerializationUtils.serialize(tracked_uids, self.trackfile_name)
-
     def __mail_check(self):
         logging.info("checking mails")
         imap = ImapClient(self.config.host, self.config.port, self.config.ssl)
         imap.login(self.config.username, self.config.password)
         imap.select_mailbox(self.config.inbox)
-        mbid = str(imap.get_mailbox_identifier(self.config.inbox))
-        new_uids, tracked_uids = self.__retrieve_new_uids(imap, mbid)
+        new_uids, mbid = imap.get_new_uids(self.config.inbox, self.trackfile_name)
         for i in range(0, len(new_uids), self.config.batch_size):
             uids = new_uids[i:i + self.config.batch_size]
             messages = imap.get_mails_for_uids(uids)
@@ -64,7 +40,7 @@ class MailChecker(threading.Thread):
                     # else DRYRUN: nothing to do
                 else:
                     logging.debug("ham detected")
-        self.__store_new_checked_uids(mbid, tracked_uids, new_uids)
+        SerializationUtils.add_uids_to_trackfile(self.trackfile_name, {mbid: [int(u) for u in new_uids]})
         imap.logout()
         logging.debug("mailcheck complete")
 

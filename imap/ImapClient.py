@@ -3,9 +3,10 @@ import imaplib  # https://docs.python.org/3/library/imaplib.html
 import logging
 import re
 import socket
-from typing import List
+from typing import List, Tuple
 
 from core.mail.MailClient import MailClient
+from util import SerializationUtils
 
 
 class ImapClient(MailClient):
@@ -53,6 +54,20 @@ class ImapClient(MailClient):
     def get_all_uids(self) -> List[bytes]:
         result, uids = self.conn.uid('SEARCH', None, 'All')
         return uids[0].split()
+
+    def get_new_uids(self, mailbox: str, trackfile: str) -> Tuple[List[bytes], str]:
+        mbid = str(self.get_mailbox_identifier(mailbox))
+        uids = self.get_all_uids()
+        tracked_uids = SerializationUtils.deserialize(trackfile)
+        if tracked_uids is None:
+            tracked_uids = {}
+        elif type(tracked_uids) is not dict:
+            tracked_uids = {}
+
+        new_uids = [
+            u for u in uids if int(u) not in tracked_uids.get(mbid, [])
+        ]
+        return new_uids, mbid
 
     def get_mails_for_uids(self,
                            uids: List[bytes]) -> List[email.message.Message]:
