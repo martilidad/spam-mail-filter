@@ -72,7 +72,6 @@ class SpamFilter:
         self.classifier.serialize()
 
     def __get_usermail_data(self):
-        # TODO trained mails should be added to trackfile
         imap = ImapClient(self.config.host, self.config.port, self.config.ssl)
         imap.login(self.config.username, self.config.password)
         batch_size = self.config.batch_size
@@ -97,19 +96,20 @@ class SpamFilter:
             ham_texts += imap.get_mails_for_uids(uids)
         labels = labels + [0] * len(ham_texts)
 
-        if self.config.track_train_mails:
-            trained_uids = {
-                ham_mb_id: [int(u) for u in ham_uids],
-                spam_mb_id: [int(u) for u in spam_uids]
-            }
-            self.__add_uids_to_trackfile(trained_uids)
+        trained_uids = {
+            ham_mb_id: [int(u) for u in ham_uids],
+            spam_mb_id: [int(u) for u in spam_uids]
+        }
+        self.__add_uids_to_trackfile(trained_uids)
 
         imap.logout()
         return MailUtils.messages_to_mails(spam_texts +
                                            ham_texts), np.array(labels)
 
-    def __add_uids_to_trackfile(self, trained_uids):
-        tracked_uids = SerializationUtils.deserialize(self.config.trackfile)
+    @staticmethod
+    def __add_uids_to_trackfile(trained_uids):
+        trackfile_name = "train_trackfile.trc"
+        tracked_uids = SerializationUtils.deserialize(trackfile_name)
         if tracked_uids is None:
             tracked_uids = {}
         elif type(tracked_uids) is not dict:
@@ -123,4 +123,4 @@ class SpamFilter:
         for value in merged.values():
             value.sort()
 
-        SerializationUtils.serialize(merged, self.config.trackfile)
+        SerializationUtils.serialize(merged, trackfile_name)
