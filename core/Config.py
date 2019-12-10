@@ -80,6 +80,7 @@ class Config(MetaContainer):
                 description=
                 'Sum of weights must be > 1. Classifiers with weight 0 will not be initialized'
             ), self)
+
         process_config = ConfigSection('process', argParser, configParser)
         self.console_log_level = process_config.parse(
             'console_log_level',
@@ -98,14 +99,12 @@ class Config(MetaContainer):
             'normal',
             type=lambda x: CheckMode[x],
             description=self.enum_to_help(CheckMode))
-        self.dryrun = process_config.parse('dryrun', False, bool)
-        self.usermail_training = process_config.parse('usermail_training',
-                                                      False, bool)
         self.track_train_mails = process_config.parse('track_train_mails',
                                                       True, bool)
         self.max_train_mails = process_config.parse('max_train_mails', 500,
                                                     int)
         self.batch_size = process_config.parse('batch_size', 100, int)
+
         self.__dict__.update(argParser.parse_args().__dict__)
         # has to be done after parse_args()
         self.configure_logging()
