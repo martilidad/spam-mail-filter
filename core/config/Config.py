@@ -45,7 +45,7 @@ class Config(MetaContainer):
     def __init__(self):
         config_parser = ConfigParser()
         arg_parser = ArgumentParser()
-        path = os.path.dirname(__file__) + "/../spamfilter.ini"
+        path = os.path.dirname(__file__) + "/../../spamfilter.ini"
         config_parser.read(path)
 
         mail_config = ConfigSection('mail', arg_parser, config_parser)
