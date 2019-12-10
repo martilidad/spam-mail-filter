@@ -19,8 +19,8 @@ class MailChecker(threading.Thread):
         while not self.stopped.wait(self.config.check_interval * 60):
             self.__mail_check()
 
-    def __retrieve_new_uids(self, imap, mbid: str
-                            ) -> Tuple[List[bytes], Dict[str, List[int]]]:
+    def __retrieve_new_uids(
+            self, imap, mbid: str) -> Tuple[List[bytes], Dict[str, List[int]]]:
         uids = imap.get_all_uids()
         tracked_uids = SerializationUtils.deserialize(self.config.trackfile)
         if tracked_uids is None:

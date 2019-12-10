@@ -52,7 +52,8 @@ class SpamFilter:
             classifier = self.config.classification_config.load_classifier(
                 train_mails, train_labels)
         elif start_mode is StartMode.LIST_MAIL_FOLDERS:
-            imap = ImapClient(self.config.host, self.config.port, self.config.ssl)
+            imap = ImapClient(self.config.host, self.config.port,
+                              self.config.ssl)
             imap.login(self.config.username, self.config.password)
             imap.print_valid_folders()
             imap.logout()

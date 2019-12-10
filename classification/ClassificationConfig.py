@@ -63,7 +63,8 @@ class ClassificationConfig:
                 "Classification weights must sum up to at least 1. "
                 "Use Checkmode None instead, if applicable.")
 
-    def load_classifier(self, train_mails=None,
+    def load_classifier(self,
+                        train_mails=None,
                         train_labels=None) -> Classifier:
         self.reload_args()
         delegates: List[DelegatableClassifier] = []

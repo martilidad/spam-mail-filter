@@ -6,15 +6,15 @@ from configparser import ConfigParser
 
 from classification.ClassificationConfig import ClassificationConfig
 from core.CheckMode import CheckMode
-from core.MetaContainer import MetaContainer
+from util.MetaContainer import MetaContainer
 from core.StartMode import StartMode
 
 
 class ConfigSection:
-    def __init__(self, name: str, argParser, configParser, *args, **kwargs):
-        self.argParser = argParser
-        self.arg_group = argParser.add_argument_group(name, *args, **kwargs)
-        self.config_group = configParser[name]
+    def __init__(self, name: str, arg_parser, config_parser, *args, **kwargs):
+        self.argParser = arg_parser
+        self.arg_group = arg_parser.add_argument_group(name, *args, **kwargs)
+        self.config_group = config_parser[name]
 
     def parse(self, name, default=None, type: type = str, description=None):
         value = default
@@ -43,45 +43,47 @@ class ConfigSection:
 
 class Config(MetaContainer):
     def __init__(self):
-        configParser = ConfigParser()
-        argParser = ArgumentParser()
+        config_parser = ConfigParser()
+        arg_parser = ArgumentParser()
         path = os.path.dirname(__file__) + "/../spamfilter.ini"
-        configParser.read(path)
+        config_parser.read(path)
 
-        mail_config = ConfigSection('mail', argParser, configParser)
+        mail_config = ConfigSection('mail', arg_parser, config_parser)
         self.username = mail_config.parse('username', '')
         self.password = mail_config.parse('password', '')
         self.host = mail_config.parse('host', 'localhost')
         self.port = mail_config.parse('port', 993, int)
         self.ssl = mail_config.parse('ssl', True, bool)
 
-        spam_config = ConfigSection('spam', argParser, configParser)
+        spam_config = ConfigSection('spam', arg_parser, config_parser)
         self.check_interval = spam_config.parse('check_interval', 15, float)
         self.score_threshold = spam_config.parse('score_threshold', 0.5, float)
 
-        file_config = ConfigSection('file', argParser, configParser)
+        file_config = ConfigSection('file', arg_parser, config_parser)
         self.trackfile = file_config.parse('trackfile_name', 'trackfile.trc')
 
-        folder_config = ConfigSection('folder', argParser, configParser,
-                                      'Valid folders can be displayed with --start_mode LIST_MAIL_FOLDERS')
+        folder_config = ConfigSection(
+            'folder', arg_parser, config_parser,
+            'Valid folders can be displayed with --start_mode LIST_MAIL_FOLDERS'
+        )
         self.inbox = folder_config.parse('inbox', 'INBOX')
         self.spam_folder = folder_config.parse('spam_folder')
         self.train_ham_mailbox = folder_config.parse('train_ham_mailbox')
         self.train_spam_mailbox = folder_config.parse('train_spam_mailbox')
 
-        external_config = ConfigSection('external', argParser, configParser)
+        external_config = ConfigSection('external', arg_parser, config_parser)
         self.google_api_token = external_config.parse('google_api_token')
 
         self.classification_config = ClassificationConfig(
             ConfigSection(
                 'classification',
-                argParser,
-                configParser,
+                arg_parser,
+                config_parser,
                 description=
                 'Sum of weights must be > 1. Classifiers with weight 0 will not be initialized'
             ), self)
 
-        process_config = ConfigSection('process', argParser, configParser)
+        process_config = ConfigSection('process', arg_parser, config_parser)
         self.console_log_level = process_config.parse(
             'console_log_level',
             'INFO',
@@ -105,7 +107,7 @@ class Config(MetaContainer):
                                                     int)
         self.batch_size = process_config.parse('batch_size', 100, int)
 
-        self.__dict__.update(argParser.parse_args().__dict__)
+        self.__dict__.update(arg_parser.parse_args().__dict__)
         # has to be done after parse_args()
         self.configure_logging()
 
