@@ -6,6 +6,7 @@
 FROM python:3.8
 ADD . ./
 WORKDIR ./
-RUN pip install -r requirements.txt
 VOLUME ./spamfilter.ini:/spamfilter.ini
+VOLUME ./data/:/data/
+RUN pip install -r requirements.txt
 CMD python __main__.py
