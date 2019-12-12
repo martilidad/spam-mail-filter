@@ -20,7 +20,16 @@ class OnlineCountVectorizer(CountVectorizer):
 
     def update_vocabulary(self, raw_documents: List[str]):
         # retrieve new vocab
-        new_vectorizer = CountVectorizer()
+        new_vectorizer = CountVectorizer(
+            strip_accents='unicode',
+            token_pattern=u'(?ui)\\b\\w*[a-z]+\\w*\\b',
+            stop_words='english',
+            decode_error='replace',
+            # max_df, min_df: adjust these values to get a more precise vocabulary;
+            # this is only reasonable if the documents have a even class distribution
+            # see doc for exact definition (float vs. int)
+            max_df=1.0,
+            min_df=1)
         new_vectorizer.fit_transform(raw_documents)
         new_vocab = new_vectorizer.vocabulary_
 
