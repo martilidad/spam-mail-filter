@@ -20,12 +20,7 @@ class OnlineCountVectorizer(CountVectorizer):
 
     def update_vocabulary(self, raw_documents: List[str]):
         base_vocab = self.vocabulary
-        self.__init__()
-        try:
-            super().fit_transform(raw_documents)
-        except ValueError:
-            return
-        vocab = self.vocabulary_
+        vocab, _ = self._count_vocab(raw_documents, False)
         if base_vocab is None:
             self.__init__(vocab)
             return
