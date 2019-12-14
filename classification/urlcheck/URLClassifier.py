@@ -26,6 +26,8 @@ class URLClassifier(DelegatableClassifier, Serializable['URLClassifier']):
         self.target_attribute = target_attribute
         self.safe_browsing = SafeBrowsing(api_token)
         self.url_extractor = URLExtract()
+        self.url_extractor.extract_email = False
+        self.url_extractor.get_stop_chars_left().add(':')
         self.checked_urls: dict = {}
 
     def train(self, mails: List[Mail] = None, labels: List[int] = None):
