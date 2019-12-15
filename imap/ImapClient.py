@@ -37,8 +37,10 @@ class ImapClient(MailClient):
         print("Valid folders:")
         for response in lst:
             if response.find(b'Noselect') == -1:
-                folder = response.split(b'"')[-2].decode()
-                print(folder)
+                decoded = response.decode()
+                # everything after the first forward slash should be The correct Folder Name
+                folder: str = decoded[decoded.find('/') + 1:]
+                print(folder.strip(' \'\"'))
 
     def get_mailbox_identifier(self, mailbox: str):
         _, response = self.conn.status(mailbox, '(UIDVALIDITY)')
