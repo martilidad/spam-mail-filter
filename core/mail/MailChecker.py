@@ -7,11 +7,12 @@ from util import MailUtils, SerializationUtils
 
 
 class MailChecker(threading.Thread):
-    def __init__(self, classifier, config):
+    def __init__(self, classifier, config, lock):
         threading.Thread.__init__(self)
         self.stopped = threading.Event()
         self.classifier = classifier
         self.config = config
+        self.lock = lock
         self.trackfile_name = "check_trackfile.trc"
 
     def run(self):
@@ -20,6 +21,7 @@ class MailChecker(threading.Thread):
             self.__mail_check()
 
     def __mail_check(self):
+        self.lock.acquire()
         logging.info("checking mails")
         imap = ImapClient(self.config.host, self.config.port, self.config.ssl)
         imap.login(self.config.username, self.config.password)
@@ -42,6 +44,7 @@ class MailChecker(threading.Thread):
                     logging.debug("ham detected")
         SerializationUtils.add_uids_to_trackfile(self.trackfile_name, {mbid: [int(u) for u in new_uids]})
         imap.logout()
+        self.lock.release()
         logging.debug("mailcheck complete")
 
     def stop(self):

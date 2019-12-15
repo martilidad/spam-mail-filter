@@ -1,11 +1,13 @@
 import logging
 from email.message import Message
+from threading import Lock
 from typing import List
 
 import numpy as np
 from sklearn.model_selection import train_test_split
 
 from classification.Classifier import Classifier
+from core.OnlineTraining import OnlineTraining
 from core.config.CheckMode import CheckMode
 from core.config.Config import Config
 from core.data.EnronDataset import EnronDataset
@@ -28,7 +30,9 @@ class SpamFilter:
             self.classifier.serialize()
             exit(0)
 
-        self.mailChecker = MailChecker(self.classifier, self.config)
+        lock = Lock()
+        self.mailChecker = MailChecker(self.classifier, self.config, lock)
+        self.onlineTraining = OnlineTraining(lock, self)
 
     def __load_initial_classifier(self) -> Classifier:
         start_mode = self.config.start_mode
@@ -80,19 +84,28 @@ class SpamFilter:
 
     def start(self):
         self.mailChecker.start()
+        if self.config.start_mode is StartMode.USERMAIL_TRAINING \
+                or self.config.start_mode is StartMode.ONLINE_TRAINING:
+            self.onlineTraining.start()
 
     def stop(self):
         self.mailChecker.stop()
+        self.classifier.serialize()
+        self.onlineTraining.stop()
+
+    def train_online(self):
+        train_mails, train_labels = self.__get_usermail_data()
+        self.classifier.train(train_mails, train_labels)
         self.classifier.serialize()
 
     def __get_usermail_data(self):
         imap = ImapClient(self.config.host, self.config.port, self.config.ssl)
         imap.login(self.config.username, self.config.password)
 
-        spam_texts, spam_uids, spam_mb_id = self.get_train_mails_for_mailbox(imap, self.config.train_spam_mailbox)
+        spam_texts, spam_uids, spam_mb_id = self.__get_train_mails_for_mailbox(imap, self.config.train_spam_mailbox)
         labels = [1] * len(spam_texts)
 
-        ham_texts, ham_uids, ham_mb_id = self.get_train_mails_for_mailbox(imap, self.config.train_ham_mailbox)
+        ham_texts, ham_uids, ham_mb_id = self.__get_train_mails_for_mailbox(imap, self.config.train_ham_mailbox)
         labels = labels + [0] * len(ham_texts)
 
         trained_uids = {
@@ -105,7 +118,7 @@ class SpamFilter:
         return MailUtils.messages_to_mails(spam_texts +
                                            ham_texts), np.array(labels)
 
-    def get_train_mails_for_mailbox(self, imap, mailbox: str):
+    def __get_train_mails_for_mailbox(self, imap, mailbox: str):
         imap.select_mailbox(mailbox)
         uids, mbid = imap.get_new_uids(mailbox, self.train_trackfile)
         uids = uids[0:self.config.max_train_mails]
