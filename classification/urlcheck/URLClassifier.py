@@ -57,7 +57,15 @@ class URLClassifier(DelegatableClassifier, Serializable['URLClassifier']):
         needed_parts = int(len(urls) / 500) + 1
         response: dict = {}
         for batch in np.array_split(list(urls), needed_parts):
-            response.update(self.safe_browsing.lookup_urls(batch))
+            try:
+                response.update(self.safe_browsing.lookup_urls(batch))
+            except KeyError as ex:
+                # catch exception for bug in safe_browsing module
+                if ex.args[0] == 'details':
+                    for url in batch:
+                        response.update({url: {"malicious": False}})
+                else:
+                    raise ex
         for url in urls:
             self.checked_urls[url] = response[url]['malicious']
 
