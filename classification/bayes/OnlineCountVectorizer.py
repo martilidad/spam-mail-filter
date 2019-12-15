@@ -19,29 +19,39 @@ class OnlineCountVectorizer(CountVectorizer):
         return self.transform(raw_documents)
 
     def update_vocabulary(self, raw_documents: List[str]):
-        base_vocab = self.vocabulary
-        self.__init__()
-        try:
-            super().fit_transform(raw_documents)
-        except ValueError:
-            return
-        vocab = self.vocabulary_
-        if base_vocab is None:
-            self.__init__(vocab)
-            return
+        # retrieve new vocab
+        new_vectorizer = CountVectorizer(
+            strip_accents='unicode',
+            token_pattern=u'(?ui)\\b\\w*[a-z]+\\w*\\b',
+            stop_words='english',
+            decode_error='replace',
+            # max_df, min_df: adjust these values to get a more precise vocabulary;
+            # this is only reasonable if the documents have a even class distribution
+            # see doc for exact definition (float vs. int)
+            max_df=1.0,
+            min_df=1)
+        new_vectorizer.fit_transform(raw_documents)
+        new_vocab = new_vectorizer.vocabulary_
+
         # merge vocabularies
-        i = len(base_vocab)
-        for key in vocab.keys():
-            if key not in base_vocab.keys():
-                base_vocab[key] = i
-                i += 1
+        curr_vocab = self.vocabulary
+        if curr_vocab is None:
+            curr_vocab = new_vocab
+        else:
+            i = len(curr_vocab)
+            for key in new_vocab.keys():
+                if key not in curr_vocab.keys():
+                    curr_vocab[key] = i
+                    i += 1
         # update vectorizer
-        self.__init__(base_vocab)
+        self.vocabulary = curr_vocab
+        if hasattr(self, 'vocabulary_'):
+            delattr(self, 'vocabulary_')
 
     def combine(self, m1: csr_matrix, m2: csr_matrix) -> csr_matrix:
         """
         Combines two vectorized matrices to one complying to current vocabulary
         """
         m2.resize(m2.shape[0], len(self.vocabulary))
-        m1.resize(m2.shape[0], len(self.vocabulary))
+        m1.resize(m1.shape[0], len(self.vocabulary))
         return sparse.vstack((m1, m2))

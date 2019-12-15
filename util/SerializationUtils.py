@@ -47,3 +47,7 @@ def add_uids_to_trackfile(trackfile: str, trained_uids: Dict[str, List[int]]):
         value.sort()
 
     serialize(merged, trackfile)
+
+
+def clear_trackfile(trackfile: str):
+    serialize({}, trackfile)

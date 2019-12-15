@@ -38,7 +38,7 @@ class BayesClassifier(DelegatableClassifier, Serializable['BayesClassifier']):
         self.classifier = MultinomialNB()
 
     def train(self, mails: List[Mail] = None, labels: List[int] = None):
-        if mails is not None and labels is not None:
+        if mails is not None and np.asarray(mails).size and labels is not None and np.asarray(labels).size:
             self.train_labels = [*self.train_labels, *labels]
             # most resilient list concatenation
             vector: csr_matrix = self.vectorizer.fit_transform(
