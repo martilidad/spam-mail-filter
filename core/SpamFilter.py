@@ -10,9 +10,9 @@ from classification.Classifier import Classifier
 from core.OnlineTraining import OnlineTraining
 from core.config.CheckMode import CheckMode
 from core.config.Config import Config
+from core.config.StartMode import StartMode
 from core.data.EnronDataset import EnronDataset
 from core.mail.MailChecker import MailChecker
-from core.config.StartMode import StartMode
 from imap.ImapClient import ImapClient
 from util import MailUtils, SerializationUtils
 
@@ -27,7 +27,6 @@ class SpamFilter:
 
         if self.config.check_mode is CheckMode.NONE:
             logging.info("Shutting down because check_mode is none")
-            self.classifier.serialize()
             exit(0)
 
         lock = Lock()
@@ -36,6 +35,10 @@ class SpamFilter:
 
     def __load_initial_classifier(self) -> Classifier:
         start_mode = self.config.start_mode
+        classifier: Classifier
+        deserialize = True
+        train_mails = None
+        train_labels = None
         if start_mode is StartMode.TESTDATA_TRAINING:
             logging.debug("Starting to load training data from disk.")
             # do trainig
@@ -46,40 +49,33 @@ class SpamFilter:
             train_mails = [
                 EnronDataset.enron_string_to_mail(text) for text in train_texts
             ]
-            classifier = self.config.classification_config.load_classifier(
-                train_mails, train_labels)
-            classifier.train()
+            deserialize = False
         elif start_mode is StartMode.PRETRAINED:
-            classifier = self.config.classification_config.load_classifier()
-            classifier.deserialize()
-            classifier.train()
+            pass
         elif start_mode is StartMode.NO_TRAINING:
-            classifier = self.config.classification_config.load_classifier()
+            deserialize = False
         elif start_mode is StartMode.USERMAIL_TRAINING:
             logging.debug("Starting to load training data from mail server.")
             SerializationUtils.clear_trackfile(self.train_trackfile)
             train_mails, train_labels = self.__get_usermail_data()
-            classifier = self.config.classification_config.load_classifier(
-                train_mails, train_labels)
-            classifier.train()
-            classifier.serialize()
+            deserialize = False
         elif start_mode is StartMode.ONLINE_TRAINING:
-            classifier = self.config.classification_config.load_classifier()
-            classifier.deserialize()
-            classifier.train()
-
+            logging.debug("Starting to load training data from mail server.")
             train_mails, train_labels = self.__get_usermail_data()
-            classifier.train(train_mails, train_labels)
-            classifier.serialize()
         elif start_mode is StartMode.LIST_MAIL_FOLDERS:
             imap = ImapClient(self.config.host, self.config.port,
                               self.config.ssl)
             imap.login(self.config.username, self.config.password)
             imap.print_valid_folders()
             imap.logout()
-            exit(0)
+            return exit(0)
         else:
             raise ValueError("Invalid value for start mode")
+        classifier = self.config.classification_config.load_classifier()
+        if deserialize:
+            classifier.deserialize()
+        classifier.train(train_mails, train_labels)
+        classifier.serialize()
         return classifier
 
     def start(self):
