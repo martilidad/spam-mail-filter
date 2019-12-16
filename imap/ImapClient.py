@@ -39,7 +39,7 @@ class ImapClient(MailClient):
             logging.fatal('Unable to select mailbox: ' + mailbox)
             self.print_valid_folders()
             self.logout()
-            raise ImapException('Unable to select mailbox: ' + mailbox)
+            exit(-1)
 
     def print_valid_folders(self):
         status, lst = self.conn.list()
