@@ -95,24 +95,28 @@ class SpamFilter:
         self.classifier.serialize()
 
     def __get_usermail_data(self):
-        imap = ImapClient(self.config.host, self.config.port, self.config.ssl)
-        imap.login(self.config.username, self.config.password)
+        try:
+            imap = ImapClient(self.config.host, self.config.port, self.config.ssl)
+            imap.login(self.config.username, self.config.password)
 
-        spam_texts, spam_uids, spam_mb_id = self.__get_train_mails_for_mailbox(imap, self.config.train_spam_mailbox)
-        labels = [1] * len(spam_texts)
+            spam_texts, spam_uids, spam_mb_id = self.__get_train_mails_for_mailbox(imap, self.config.train_spam_mailbox)
+            labels = [1] * len(spam_texts)
 
-        ham_texts, ham_uids, ham_mb_id = self.__get_train_mails_for_mailbox(imap, self.config.train_ham_mailbox)
-        labels = labels + [0] * len(ham_texts)
+            ham_texts, ham_uids, ham_mb_id = self.__get_train_mails_for_mailbox(imap, self.config.train_ham_mailbox)
+            labels = labels + [0] * len(ham_texts)
 
-        trained_uids = {
-            ham_mb_id: [int(u) for u in ham_uids],
-            spam_mb_id: [int(u) for u in spam_uids]
-        }
-        SerializationUtils.add_uids_to_trackfile(self.train_trackfile, trained_uids)
+            trained_uids = {
+                ham_mb_id: [int(u) for u in ham_uids],
+                spam_mb_id: [int(u) for u in spam_uids]
+            }
+            SerializationUtils.add_uids_to_trackfile(self.train_trackfile, trained_uids)
 
-        imap.logout()
-        return MailUtils.messages_to_mails(spam_texts +
-                                           ham_texts), np.array(labels)
+            imap.logout()
+            return MailUtils.messages_to_mails(spam_texts +
+                                               ham_texts), np.array(labels)
+        except TimeoutError as e:
+            logging.fatal('Timeout occurred while retrieving mails for training; maybe you lost connection')
+            raise e
 
     def __get_train_mails_for_mailbox(self, imap, mailbox: str):
         imap.select_mailbox(mailbox)

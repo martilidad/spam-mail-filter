@@ -1,0 +1,2 @@
+class ImapException(Exception):
+    pass

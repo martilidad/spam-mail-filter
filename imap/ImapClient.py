@@ -6,6 +6,7 @@ import socket
 from typing import List, Tuple
 
 from core.mail.MailClient import MailClient
+from imap.ImapException import ImapException
 from util import SerializationUtils
 
 
@@ -13,13 +14,21 @@ class ImapClient(MailClient):
     def __init__(self, host: str, port: int, ssl: bool):
         super().__init__(host, port, ssl)
         socket.setdefaulttimeout(2)
-        if ssl:
-            self.conn = imaplib.IMAP4_SSL(host, port)
-        else:
-            self.conn = imaplib.IMAP4(host, port)
+        try:
+            if ssl:
+                self.conn = imaplib.IMAP4_SSL(host, port)
+            else:
+                self.conn = imaplib.IMAP4(host, port)
+        except socket.error as ex:
+            logging.fatal('Could not connect to host ' + host + ':' + str(port))
+            raise ImapException(ex)
 
     def login(self, user: str, password: str):
-        self.conn.login(user, password)
+        try:
+            self.conn.login(user, password)
+        except imaplib.IMAP4.error as ex:
+            logging.fatal('Unable to authenticate')
+            raise ImapException(ex)
 
     def logout(self):
         self.conn.logout()
@@ -30,31 +39,37 @@ class ImapClient(MailClient):
             logging.fatal('Unable to select mailbox: ' + mailbox)
             self.print_valid_folders()
             self.logout()
-            exit(-1)
+            raise ImapException('Unable to select mailbox: ' + mailbox)
 
     def print_valid_folders(self):
         status, lst = self.conn.list()
-        print("Valid folders:")
-        for response in lst:
-            if response.find(b'Noselect') == -1:
-                decoded = response.decode()
-                # everything after the first forward slash should be The correct Folder Name
-                folder: str = decoded[decoded.find('/') + 1:]
-                print(folder.strip(' \'\"'))
+        if status == 'OK':
+            print("Valid folders:")
+            for response in lst:
+                if response.find(b'Noselect') == -1:
+                    decoded = response.decode()
+                    # everything after the first forward slash should be The correct Folder Name
+                    folder: str = decoded[decoded.find('/') + 1:]
+                    print(folder.strip(' \'\"'))
+        else:
+            raise ImapException('Unable to list valid mailboxes')
 
     def get_mailbox_identifier(self, mailbox: str):
-        _, response = self.conn.status(mailbox, '(UIDVALIDITY)')
-        body = response[0].decode()
-        match = re.search('UIDVALIDITY ([0-9]+)', body)
-        if match is not None:
-            uidvalidity = int(match.groups()[0])
-        else:
-            uidvalidity = 0
+        status, response = self.conn.status(mailbox, '(UIDVALIDITY)')
+        if status == 'OK':
+            body = response[0].decode()
+            match = re.search('UIDVALIDITY ([0-9]+)', body)
+            if match is not None:
+                uidvalidity = int(match.groups()[0])
+            else:
+                uidvalidity = 0
 
-        return uidvalidity
+            return uidvalidity
+        else:
+            return 0
 
     def get_all_uids(self) -> List[bytes]:
-        result, uids = self.conn.uid('SEARCH', None, 'All')
+        _, uids = self.conn.uid('SEARCH', None, 'All')
         return uids[0].split()
 
     def get_new_uids(self, mailbox: str, trackfile: str) -> Tuple[List[bytes], str]:
@@ -74,7 +89,7 @@ class ImapClient(MailClient):
     def get_mails_for_uids(self,
                            uids: List[bytes]) -> List[email.message.Message]:
         comma_separated_uids = ','.join([uid.decode() for uid in uids])
-        result, data = self.conn.uid('FETCH', comma_separated_uids, '(RFC822)')
+        _, data = self.conn.uid('FETCH', comma_separated_uids, '(RFC822)')
         mails: List[email.message.Message] = []
         if data[0] is None:
             return mails
@@ -89,11 +104,14 @@ class ImapClient(MailClient):
         return mails
 
     def move_mail(self, uid: bytes, destination: str):
-        result = self.conn.uid('COPY', uid, destination)
+        status, result = self.conn.uid('COPY', uid, destination)
 
-        if result[0] == 'OK':
+        if status == 'OK':
             self.conn.uid('STORE', uid, '+FLAGS', '(\Deleted)')
             self.conn.expunge()
+        else:
+            logging.info('Could not copy mail to destination folder: ' + destination +
+                         '; you probably provided an invalid mailbox as spam_folder')
 
     def flag_mail(self, uid: bytes):
         self.conn.uid('STORE', uid, '+FLAGS', '(\Flagged)')
