@@ -19,10 +19,12 @@ if __name__ == '__main__':
     sf = SpamFilter()
     sf.start()
 
-    while True:
+    while sf.is_alive():
         try:
             time.sleep(1)
         except ProgramKilled:
             logging.debug("Program killed: running cleanup code")
             sf.stop()
             break
+    logging.debug("One or more Threads unexpectedly terminated: running cleanup code")
+    sf.stop()

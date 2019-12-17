@@ -80,9 +80,12 @@ class SpamFilter:
 
     def start(self):
         self.mailChecker.start()
-        if self.config.start_mode is StartMode.USERMAIL_TRAINING \
-                or self.config.start_mode is StartMode.ONLINE_TRAINING:
+        if self.__is_online_training_active():
             self.onlineTraining.start()
+
+    def __is_online_training_active(self):
+        return self.config.start_mode is StartMode.USERMAIL_TRAINING \
+               or self.config.start_mode is StartMode.ONLINE_TRAINING
 
     def stop(self):
         self.mailChecker.stop()
@@ -127,3 +130,9 @@ class SpamFilter:
             batch_uids = uids[i:i + self.config.batch_size]
             texts += imap.get_mails_for_uids(batch_uids)
         return texts, uids, mbid
+
+    def is_alive(self):
+        alive = self.mailChecker.is_alive()
+        if self.__is_online_training_active():
+            alive &= self.onlineTraining.is_alive()
+        return alive
