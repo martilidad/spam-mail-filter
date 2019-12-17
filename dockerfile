@@ -2,7 +2,7 @@
 # loads settings from spamfilter.ini
 # to use this container separately do:
 # docker build -t spamfilter .
-# docker run spamfilter
+# docker run -it spamfilter
 FROM python:3.8
 ADD . ./
 WORKDIR ./

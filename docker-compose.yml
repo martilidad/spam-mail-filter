@@ -1,6 +1,10 @@
 # This file starts the application in a docker container with davmail
 # to not use davmail change spamfilter command or directly use dockerfile
 # other settings can be directly changed in spamfilter.ini
+# ---
+# if you want to use online training attach to the spamfilter service using:
+# docker attach <name from docker ps>
+# type 'train' to train with latest mails in your folders
 version: "3.7"
 services:
   davmail:
@@ -10,13 +14,16 @@ services:
       - "./davmail.properties:/etc/davmail/davmail.properties"
     networks:
       - shared
-# smtp port if needed
+# smtp & imap port if needed
 # ports:
 #      - "1025:1025"
+#      - "993:993"
   spamfilter:
     # container defined in dockerfile
     build: .
     # connect to davmail
+    tty: true
+    stdin_open: true
     command: "python __main__.py --ssl false --port 1143 --host davmail"
     networks:
       - shared

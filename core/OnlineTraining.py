@@ -12,7 +12,11 @@ class OnlineTraining(threading.Thread):
 
     def run(self):
         while self.running:
-            inp = input()
+            try:
+                inp = input()
+            except EOFError:
+                logging.fatal("No Input found. Terminating Online Training. For Docker use 'run -it'")
+                return
             if inp == "train":
                 self.lock.acquire()
                 logging.info("starting training")
