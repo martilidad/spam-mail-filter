@@ -89,8 +89,8 @@ class SpamFilter:
 
     def stop(self):
         self.mailChecker.stop()
-        self.classifier.serialize()
-        self.onlineTraining.stop()
+        if self.__is_online_training_active():
+            self.onlineTraining.stop()
 
     def train_online(self):
         train_mails, train_labels = self.__get_usermail_data()

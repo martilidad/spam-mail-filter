@@ -1,4 +1,6 @@
 import logging
+import os
+import signal
 import threading
 
 
@@ -26,4 +28,4 @@ class OnlineTraining(threading.Thread):
 
     def stop(self):
         self.running = False
-        self.join()
+        os.kill(os.getpid(), signal.SIGINT)
