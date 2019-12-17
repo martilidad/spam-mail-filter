@@ -84,19 +84,19 @@ class Config(MetaContainer):
         self.console_log_level = process_config.parse(
             'console_log_level',
             'INFO',
-            type=lambda x: logging._nameToLevel[x],
+            type=self.key_parser('console_log_level', logging._nameToLevel),
             description=self.list_to_help(logging._nameToLevel.keys()))
         self.create_logfiles = process_config.parse('create_logfiles', 'False',
                                                     bool)
         self.start_mode = process_config.parse(
             'start_mode',
             'training',
-            type=lambda x: StartMode[x],
+            type=self.key_parser('start_mode', StartMode),
             description=self.enum_to_help(StartMode))
         self.check_mode = process_config.parse(
             'check_mode',
             'normal',
-            type=lambda x: CheckMode[x],
+            type=self.key_parser('check_mode', CheckMode),
             description=self.enum_to_help(CheckMode))
         self.max_train_mails = process_config.parse('max_train_mails', 500,
                                                     int)
@@ -116,6 +116,18 @@ class Config(MetaContainer):
     @staticmethod
     def enum_to_help(enum):
         return Config.list_to_help([val.name for val in list(enum)])
+
+    @staticmethod
+    def key_parser(key_name, key_map):
+        """this function creates a parsing function for an enum or other keymap
+        Keyerrors are mapped to readable ValueErrors"""
+        def parser(untyped_value):
+            try:
+                return key_map[untyped_value]
+            except KeyError:
+                # this needs to be a ValueError, otherwise argParser will not print proper error
+                raise ValueError("Configuration Key {} Does not support value: {}".format(key_name, untyped_value))
+        return parser
 
     def configure_logging(self):
         if self.create_logfiles:
