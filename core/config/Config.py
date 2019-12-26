@@ -64,7 +64,7 @@ class Config(MetaContainer):
             'Valid folders can be displayed with --start_mode LIST_MAIL_FOLDERS'
         )
         self.inbox = folder_config.parse('inbox', 'INBOX')
-        self.spam_folder = folder_config.parse('spam_folder')
+        self.spam_folder = folder_config.parse('spam_mailbox')
         self.train_ham_mailbox = folder_config.parse('train_ham_mailbox')
         self.train_spam_mailbox = folder_config.parse('train_spam_mailbox')
 
@@ -90,7 +90,7 @@ class Config(MetaContainer):
                                                     bool)
         self.start_mode = process_config.parse(
             'start_mode',
-            'training',
+            'usermail_training',
             type=self.key_parser('start_mode', StartMode),
             description=self.enum_to_help(StartMode))
         self.check_mode = process_config.parse(
