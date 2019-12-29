@@ -71,7 +71,7 @@ class URLClassifier(DelegatableClassifier, Serializable['URLClassifier']):
                 self.checked_urls[url] = response[url]['malicious']
             except KeyError:
                 logging.info("URL could not be classified: " + url)
-                self.checked_urls[url] = {"malicious": False}
+                self.checked_urls[url] = False
 
     @property
     def save_folder(self):
