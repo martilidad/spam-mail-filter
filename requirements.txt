@@ -4,7 +4,7 @@
 # classification\bayes\BayesClassifier.py: 5
 # classification\urlcheck\URLClassifier.py: 4
 # core\SpamFilter.py: 3
-numpy == 1.17.4
+numpy == 1.22.0
 
 # classification\urlcheck\URLClassifier.py: 5
 pysafebrowsing == 0.1.1
