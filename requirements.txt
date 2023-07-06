@@ -11,7 +11,7 @@ pysafebrowsing == 0.1.1
 
 # classification\bayes\BayesClassifier.py: 6,7
 # classification\bayes\OnlineCountVectorizer.py: 3,4
-scipy == 1.3.3
+scipy == 1.10.0
 
 # classification\bayes\BayesClassifier.py: 8,9
 # classification\bayes\OnlineCountVectorizer.py: 5
